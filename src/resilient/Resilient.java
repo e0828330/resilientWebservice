@@ -14,7 +14,7 @@ public interface Resilient {
 	@WebMethod
 	public String identifyYourSelf();
 	@WebMethod
-	public String identifySWEEnvironment();
+	public String identifySWEnvironment();
 	@WebMethod
 	public String serviceChangesSince(@WebParam(name="date") Date date);
 	@WebMethod

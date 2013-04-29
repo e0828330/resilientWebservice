@@ -23,7 +23,7 @@ public class ResilientService implements Resilient {
 
 	@Override
 	@WebMethod
-	public String identifySWEEnvironment() {
+	public String identifySWEnvironment() {
 		// TODO Auto-generated method stub
 		return null;
 	}
