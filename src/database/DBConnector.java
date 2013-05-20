@@ -17,7 +17,7 @@ public class DBConnector {
 	private DBConnector() {
 		try {
 			Class.forName("com.mysql.jdbc.Driver");
-			connect = DriverManager .getConnection("jdbc:mysql://" + host + "/resilientWS?user=" + user + "&password=" + password);
+			connect = DriverManager .getConnection("jdbc:mysql://" + host + "/" + database + "?user=" + user + "&password=" + password);
 		} catch (ClassNotFoundException | SQLException e) {
 			e.printStackTrace();
 		}
