@@ -26,6 +26,7 @@ import com.eviware.soapui.impl.wsdl.WsdlOperation;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
 import com.eviware.soapui.impl.wsdl.support.wsdl.WsdlImporter;
 import com.eviware.soapui.model.iface.Operation;
+import com.eviware.soapui.settings.WsdlSettings;
 
 public class Soap {
 
@@ -37,8 +38,16 @@ public class Soap {
 	 * @throws Exception
 	 */
 	public static Map<String, String> getRequests(String serviceUrl) throws Exception {
+		SoapUI.setStandalone(true);
+
+		if (!Misc.isAvailable(serviceUrl)) {
+			throw new IOException("Server not reachable");
+		}
+
 		HashMap<String, String> result = new HashMap<>();
 		WsdlProject project = new WsdlProject();
+		project.getSettings().setBoolean(WsdlSettings.CACHE_WSDLS, false);
+		project.setTimeout(15);
 		WsdlInterface[] wsdls = WsdlImporter.importWsdl(project, serviceUrl);
 		WsdlInterface wsdl = wsdls[0];
 		for (Operation operation : wsdl.getOperationList()) {

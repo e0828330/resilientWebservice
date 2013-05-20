@@ -4,6 +4,8 @@ import java.io.IOException;
 
 import org.apache.xmlbeans.XmlException;
 
+import utils.Misc;
+
 import com.eviware.soapui.SoapUI;
 import com.eviware.soapui.impl.WsdlInterfaceFactory;
 import com.eviware.soapui.impl.wsdl.WsdlInterface;
@@ -32,7 +34,14 @@ public class Communicator {
 	 */
 	public String sendRequest(String serviceUrl, String xmlRequest) throws XmlException, IOException, SoapUIException, SubmitException {
 		// TODO: This is a random test ...
+		SoapUI.setStandalone(true);
 		WsdlProject project = new WsdlProject();
+		project.setTimeout(1500);
+		
+		if (!Misc.isAvailable("http://localhost:9999/WS/Test?wsdl")) {
+			throw new IOException("Server not reachable");
+		}
+
 		WsdlInterface iface = WsdlInterfaceFactory.importWsdl(project, "http://localhost:9999/WS/Test?wsdl", true)[0];
 		WsdlOperation operation = (WsdlOperation) iface.getOperationByName("doCalc");
 		WsdlRequest request = operation.addNewRequest("My request");
