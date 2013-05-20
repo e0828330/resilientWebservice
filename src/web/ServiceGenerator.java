@@ -52,7 +52,6 @@ public class ServiceGenerator extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
-			// TODO: Add to database etc, this is just a quick test
 			String wsdl = generateWSDL(request.getParameter("wsdl"), 1L);
 			response.setContentType("text/xml");
 			response.getWriter().print(wsdl);
