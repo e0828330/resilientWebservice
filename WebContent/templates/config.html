@@ -37,19 +37,22 @@
 <body>
 <h1>Monitor Configuration</h1>
 <form action="MonitorConfig" method="post">
+<input type="hidden" name="service" value="${service}" />
 <!-- $beginBlock method -->
 <h2>${name}</h2>
 <!-- $beginBlock param -->
 <h3>Parameter: ${param}</h3>
-<input type="radio" id="${name}_${param}_0" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${empty}"/>&nbsp;<label for="${name}_${param}_0">Empty</label>
-<input type="radio" id="${name}_${param}_1" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${number}"/>&nbsp;<label for="${name}_${param}_1">Number</label>
-<input type="radio" id="${name}_${param}_2" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${word}"/>&nbsp;<label for="${name}_${param}_2">Word</label>
-<input type="radio" id="${name}_${param}_3" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(true)" value="${other}"/>&nbsp;<label for="${name}_${param}_3">Other</label>
+<input required="required" type="radio" id="${name}_${param}_0" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${empty}"/>&nbsp;<label for="${name}_${param}_0">Empty</label>
+<input required="required" type="radio" id="${name}_${param}_1" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${number}"/>&nbsp;<label for="${name}_${param}_1">Number</label>
+<input required="required" type="radio" id="${name}_${param}_2" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${word}"/>&nbsp;<label for="${name}_${param}_2">Word</label>
+<input required="required" type="radio" id="${name}_${param}_3" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(true)" value="${other}"/>&nbsp;<label for="${name}_${param}_3">Other</label>
 <input type="button" style="display:none" onclick="configureCatchWords('${name}_${param}_data')" id="${name}_${param}_cfg" value="Configure" />
 <input type="hidden" value="" id="${name}_${param}_data" name="${name}_${param}_data" />
 <br />
 <!-- $endBlock param -->
 <!-- $endBlock method -->
+<br />
+<input type="submit" value="Generate Resilent Service" />
 </form>
 
 <div id="catchWords" title="Configure Paramater Values" >
