@@ -10,6 +10,13 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.xmlbeans.XmlException;
+
+import com.eviware.soapui.model.iface.Request.SubmitException;
+import com.eviware.soapui.support.SoapUIException;
+
+import monitor.Communicator;
+
 import utils.Soap;
 import utils.Misc;
 import biz.source_code.miniTemplator.MiniTemplator;
