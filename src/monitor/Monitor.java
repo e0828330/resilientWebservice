@@ -11,8 +11,10 @@ public class Monitor implements Runnable {
 
 	final private long TIMEOUT = 15000;
 	
-	public Monitor() {
-
+	private String service; 
+	
+	public Monitor(String service) {
+		this.service = service;
 	}
 
 	@Override
@@ -21,6 +23,7 @@ public class Monitor implements Runnable {
 		Communicator c = new Communicator();
 		String expected = "";
 		try {
+			// TODO: The expected value should come from the database
 			expected = c.sendRequest("", "");
 		} catch (XmlException | IOException | SoapUIException | SubmitException e) {
 			System.out.println(e.getMessage());
@@ -30,6 +33,7 @@ public class Monitor implements Runnable {
 		while (true) {
 			try {
 				Thread.sleep(TIMEOUT);
+				// TODO: Fill in params (service, request from database)
 				String msg = c.sendRequest("", "");
 				if (!msg.equals(expected)) {
 					System.out.println("Message response changed!");
@@ -42,6 +46,10 @@ public class Monitor implements Runnable {
 				return; // Exit
 			}
 		}
+	}
+
+	public String getService() {
+		return service;
 	}
 
 }

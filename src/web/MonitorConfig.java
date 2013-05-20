@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import monitor.Monitor;
 import utils.Misc;
 import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
@@ -42,21 +41,6 @@ public class MonitorConfig extends HttpServlet {
 		tplSpec.templateFileName = Misc.getTemplatePath(this, "config.html");
 
 		Map<String, ArrayList<String>> methods = null;
-
-		// TODO: Remove
-		boolean testMonitor = false;
-		if (testMonitor) {
-			Thread test = new Thread(new Monitor());
-			test.start();
-			
-			try {
-				Thread.sleep(60000);
-				test.interrupt();
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		}
 
 		try {
 			methods = Soap.getMethods(request.getParameter("wsdl"));
