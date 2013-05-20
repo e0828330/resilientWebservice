@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Resilent Webservices</title>
+<link rel="stylesheet" href="jquery-ui.css" />
+<script src="jquery-1.9.1.js"></script>
+<script src="jquery-ui.js"></script>
+<script type="text/javascript">
+	var currentParam = "";
+	$(function() {
+		 $("#catchWords").dialog({
+			 autoOpen: false,
+			 height: 480,
+			 width: 550,
+			 modal: true,
+			 buttons: {
+				 Cancel: function() {
+					 $(this).dialog("close");
+				 },
+				 OK: function() {
+					 $("#" + currentParam).val($("#config").val());
+					 $(this).dialog("close");
+				 },
+				 
+			 }
+		 });
+	});
+	
+	function configureCatchWords(param) {
+		currentParam = param;
+		$("#config").val($("#" + param).val());
+		$("#catchWords").dialog("open");
+	}
+</script>
+</head>
+<body>
+<h1>Monitor Configuration</h1>
+<form action="MonitorConfig" method="post">
+<!-- $beginBlock method -->
+<h2>${name}</h2>
+<!-- $beginBlock param -->
+<h3>${param} - Value</h3>
+<input type="radio" id="${name}_${param}_0" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${number}"/>&nbsp;<label for="${name}_${param}_1">Number</label>
+<input type="radio" id="${name}_${param}_1" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(false)" value="${word}"/>&nbsp;<label for="${name}_${param}_1">Word</label>
+<input type="radio" id="${name}_${param}_2" name="${name}_${param}" onclick="$('#${name}_${param}_cfg').toggle(true)" value="${other}"/>&nbsp;<label for="${name}_${param}_2">Other</label>
+<input type="button" style="display:none" onclick="configureCatchWords('${name}_${param}_data')" id="${name}_${param}_cfg" value="Configure" />
+<input type="hidden" value="" id="${name}_${param}_data" name="${name}_${param}_data" />
+<br />
+<!-- $endBlock param -->
+<!-- $endBlock method -->
+</form>
+
+<div id="catchWords" title="Configure Paramater Values" >
+	<p>Enter some possible values below, one per line.</p>
+	<form>
+		<textarea style="width:500px; height: 250px" id="config"></textarea>
+	</form>
+</div>
+
+</body>
+</html>
