@@ -22,6 +22,7 @@ public class MonitorConfig extends HttpServlet {
 	private static final long serialVersionUID = 1L;
     
 	public enum ValueType {
+		EMPTY,
 		NUMBER,
 		WORD,
 		OTHER
@@ -45,8 +46,24 @@ public class MonitorConfig extends HttpServlet {
 		Map<String, ArrayList<String>> methods = null;
 		
 		try {
-			// TODO: is hardcoded
-			methods = Soap.getMethods("http://www.predic8.com:8080/shop/ShopService?wsdl");
+			methods = Soap.getMethods(request.getParameter("wsdl"));
+			MiniTemplator tpl = new MiniTemplator(tplSpec);
+			
+			for (String method : methods.keySet()) {
+				tpl.setVariable("name", method);
+				ArrayList<String> params = methods.get(method);
+				for (String param : params) {
+					tpl.setVariable("param", param);
+					tpl.setVariable("number", ValueType.EMPTY.toString());
+					tpl.setVariable("number", ValueType.NUMBER.toString());
+					tpl.setVariable("word", ValueType.WORD.toString());
+					tpl.setVariable("other", ValueType.OTHER.toString());
+					tpl.addBlock("param");
+				}
+				tpl.addBlock("method");
+			}
+			
+			response.getWriter().print(tpl.generateOutput());
 		} catch (Exception e) {
 			tplSpec = new MiniTemplator.TemplateSpecification();
 			tplSpec.templateFileName = Misc.getTemplatePath(this, "info.html");
@@ -56,23 +73,6 @@ public class MonitorConfig extends HttpServlet {
 			
 			response.getWriter().print(tpl.generateOutput());
 		} 
-		
-		MiniTemplator tpl = new MiniTemplator(tplSpec);
-		
-		for (String method : methods.keySet()) {
-			tpl.setVariable("name", method);
-			ArrayList<String> params = methods.get(method);
-			for (String param : params) {
-				tpl.setVariable("param", param);
-				tpl.setVariable("number", ValueType.NUMBER.toString());
-				tpl.setVariable("word", ValueType.WORD.toString());
-				tpl.setVariable("other", ValueType.OTHER.toString());
-				tpl.addBlock("param");
-			}
-			tpl.addBlock("method");
-		}
-		
-		response.getWriter().print(tpl.generateOutput());
 	}
 
 	/**
