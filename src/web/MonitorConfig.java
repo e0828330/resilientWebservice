@@ -10,6 +10,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import monitor.Monitor;
+import monitor.MonitorManager;
+
 import utils.Misc;
 import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
@@ -42,6 +45,14 @@ public class MonitorConfig extends HttpServlet {
 
 		Map<String, ArrayList<String>> methods = null;
 
+		try {
+			MonitorManager mg = MonitorManager.getInstance();
+			mg.addMonitor(new Monitor(""));
+		}
+		catch (Exception e) {
+			e.printStackTrace();
+		}
+		
 		try {
 			methods = Soap.getMethods(request.getParameter("wsdl"));
 			MiniTemplator tpl = new MiniTemplator(tplSpec);

@@ -19,7 +19,7 @@ public class MonitorManager {
 	 * @return
 	 */
 	public static MonitorManager getInstance() {
-		if (instance != null) {
+		if (instance == null) {
 			instance = new MonitorManager();
 		}
 		return instance;

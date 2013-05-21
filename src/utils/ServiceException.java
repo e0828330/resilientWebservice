@@ -11,4 +11,8 @@ public class ServiceException extends Exception {
 		super(msg);
 	}
 	
+	public ServiceException(Throwable t) {
+		super(t);
+	}
+	
 }

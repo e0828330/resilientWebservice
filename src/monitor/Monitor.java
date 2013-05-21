@@ -1,14 +1,9 @@
 package monitor;
 
-import java.io.IOException;
-
 import org.apache.log4j.Logger;
-import org.apache.xmlbeans.XmlException;
 
+import utils.Misc;
 import utils.ServiceException;
-
-import com.eviware.soapui.model.iface.Request.SubmitException;
-import com.eviware.soapui.support.SoapUIException;
 
 public class Monitor implements Runnable {
 
@@ -30,17 +25,20 @@ public class Monitor implements Runnable {
 		try {
 			// TODO: The expected value should come from the database
 			expected = c.sendRequest("", "");
-		} catch (XmlException | IOException | SoapUIException | SubmitException e) {
+	
+		} catch (ServiceException e) {
 			log.error(e.getMessage());
 			return;
-		} catch (ServiceException e) {
-			// TODO Auto-generated catch block
-			log.error(e.getMessage());
 		}
 
+		log.debug("expected message = " + expected);
+		
 		while (true) {
 			try {
 				Thread.sleep(TIMEOUT);
+				if (!Misc.isAvailable("http://localhost:9999/WS/Test?wsdl")) {
+					throw new ServiceException("Server not reachable");
+				}
 				// TODO: Fill in params (service, request from database)
 				String msg = c.sendRequest("", "");
 				if (!msg.equals(expected)) {
@@ -48,11 +46,9 @@ public class Monitor implements Runnable {
 					log.warn("Message response changed!");
 				}
 				log.debug("Waiting between checks");
-			} catch (XmlException | IOException | SoapUIException | SubmitException e) {
-				log.error(e.getMessage());
 			} catch (ServiceException e) {
 				// TODO: Log to DB
-				log.warn("Service is not reachable!");
+				log.warn(e.getMessage());
 			}
 			catch (InterruptedException e) {
 				log.info("Monitor will quit!");
