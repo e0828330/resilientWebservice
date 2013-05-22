@@ -1,47 +1,47 @@
 package entity;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.ManyToOne;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+@Entity
 public class Log {
 
-	private Long id;
+	@Id
+	@GeneratedValue (strategy = GenerationType.IDENTITY)
+	private Long id;	
+	
+	@Temporal (TemporalType.TIMESTAMP)
+	private Date timestamp;
 
-	private Timestamp timestamp;
-
+	@Column(columnDefinition = "TEXT")
 	private String message;
 
 	private String name;
 
 	private Type type;
+	
+	@ManyToOne
+	private WebService webservice;
 
 	public enum Type {
 		OPERATION, HARDWARE, SOFTWARE, AVAILABILITY
 	}
 	
-	public Log() {
-		
-	}
-	
-	public Log (Long id, String message, String name, Type type) {
-		this.id = id;
-		this.message = message;
-		this.name = name;
-		this.type = type;
-	}
+	public Log() { }
 
-	public Long getId() {
-		return id;
-	}
-
-	public void setId(Long id) {
-		this.id = id;
-	}
-
-	public Timestamp getTimestamp() {
+	public Date getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(Timestamp timestamp) {
+	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
 
@@ -67,6 +67,14 @@ public class Log {
 
 	public void setType(Type type) {
 		this.type = type;
+	}
+
+	public WebService getWebservice() {
+		return webservice;
+	}
+
+	public void setWebservice(WebService webservice) {
+		this.webservice = webservice;
 	}
 
 }

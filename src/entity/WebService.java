@@ -1,35 +1,48 @@
 package entity;
 
-import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
 
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+
+@Entity
 public class WebService {
 
+	@Id
+	@GeneratedValue (strategy = GenerationType.IDENTITY)
 	private Long id;
 	
 	private String url;
 	
-	private Timestamp timestamp;
+	@Temporal (TemporalType.TIME)
+	private Date timestamp;
 	
+	@Column(columnDefinition = "TEXT")
 	private String wsdl;
 	
 	private String version;
 	
+	@Column(columnDefinition = "TEXT")
 	private String HWinfo;
 	
+	@Column(columnDefinition = "TEXT")
 	private String SWinfo;
 	
-	public WebService() {
-		
-	}
+	@OneToMany
+	private List<Log> logs;
 	
-	public WebService (String url, String wsdl, String version, String HWinfo, String SWinfo) {
-		this.url = url;
-		this.wsdl = wsdl;
-		this.version = version;
-		this.HWinfo = HWinfo;
-		this.SWinfo = SWinfo;
-	}
-
+	@OneToMany
+	private List<Data> data;
+	
+	public WebService() { }
+	
 	public Long getId() {
 		return id;
 	}
@@ -38,11 +51,11 @@ public class WebService {
 		this.id = id;
 	}
 
-	public Timestamp getTimestamp() {
+	public Date getTimestamp() {
 		return timestamp;
 	}
 
-	public void setTimestamp(Timestamp timestamp) {
+	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
 
@@ -83,6 +96,22 @@ public class WebService {
 	}
 	public void setUrl(String url) {
 		this.url = url;
+	}
+
+	public List<Log> getLogs() {
+		return logs;
+	}
+
+	public void setLogs(List<Log> logs) {
+		this.logs = logs;
+	}
+
+	public List<Data> getData() {
+		return data;
+	}
+
+	public void setData(List<Data> data) {
+		this.data = data;
 	}	
 	
 }
