@@ -10,6 +10,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import utils.Base64;
+
 import utils.Misc;
 import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
@@ -66,6 +68,7 @@ public class MonitorConfig extends HttpServlet {
 					tpl.setVariable("number", ValueType.NUMBER.toString());
 					tpl.setVariable("word", ValueType.WORD.toString());
 					tpl.setVariable("other", ValueType.OTHER.toString());
+					tpl.setVariable("idprefix", Base64.encodeBytes((method + " " + param).getBytes()).replaceAll("=", "X"));
 					tpl.addBlock("param");
 				}
 				tpl.addBlock("method");
