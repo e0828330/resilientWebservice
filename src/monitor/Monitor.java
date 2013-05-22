@@ -2,8 +2,8 @@ package monitor;
 
 import org.apache.log4j.Logger;
 
-import utils.Misc;
 import utils.ServiceException;
+import utils.Soap;
 
 public class Monitor implements Runnable {
 
@@ -20,11 +20,10 @@ public class Monitor implements Runnable {
 	@Override
 	public void run() {
 		// TODO: This is just for testing
-		Communicator c = new Communicator();
 		String expected = "";
 		try {
 			// TODO: The expected value should come from the database
-			expected = c.sendRequest("", "");
+			expected = Soap.sendRequest("", "");
 	
 		} catch (ServiceException e) {
 			log.error(e.getMessage());
@@ -36,11 +35,11 @@ public class Monitor implements Runnable {
 		while (true) {
 			try {
 				Thread.sleep(TIMEOUT);
-				if (!Misc.isAvailable("http://localhost:9999/WS/Test?wsdl")) {
+				if (!Soap.isAvailable("http://localhost:9999/WS/Test?wsdl")) {
 					throw new ServiceException("Server not reachable");
 				}
 				// TODO: Fill in params (service, request from database)
-				String msg = c.sendRequest("", "");
+				String msg = Soap.sendRequest("", "");
 				if (!msg.equals(expected)) {
 					// TODO: Log to DB
 					log.warn("Message response changed!");
