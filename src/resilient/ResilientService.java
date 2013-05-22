@@ -3,48 +3,50 @@ package resilient;
 import java.util.Date;
 
 import javax.annotation.Resource;
-import javax.jws.WebMethod;
-import javax.jws.WebParam;
 import javax.jws.WebService;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 
-@WebService(targetNamespace=Resilient.NAMESPACE)
+import resilient.xml.Change;
+import resilient.xml.Changes;
+
+@WebService(endpointInterface="resilient.Resilient")
 public class ResilientService implements Resilient {
 
 	@Resource
 	private WebServiceContext ctx;
 	
 	@Override
-	@WebMethod
 	public String identifyYourSelf() {
 		return "Hello I am a Service:" + ctx.getMessageContext().get(MessageContext.QUERY_STRING);
 	}
 
 	@Override
-	@WebMethod
 	public String identifySWEnvironment() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	@WebMethod
-	public String serviceChangesSince(@WebParam(name="date") Date date) {
+	public Changes serviceChangesSince(Date date) {
+		if (date != null) {
+			System.out.println(date.toString());
+		}
+		Changes changes = new Changes();
+		changes.addData(new Change(new Date(), "Test"));
+		changes.addData(new Change(new Date(), "Test 2"));
+
+		return changes;
+	}
+
+	@Override
+	public String swEnvironmentChangesSince(Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	@WebMethod
-	public String swEnvironmentChangesSince(@WebParam(name="date") Date date) {
-		// TODO Auto-generated method stub
-		return null;
-	}
-
-	@Override
-	@WebMethod
-	public String hwEnvironmentChangesSince(@WebParam(name="date") Date date) {
+	public String hwEnvironmentChangesSince(Date date) {
 		// TODO Auto-generated method stub
 		return null;
 	}
