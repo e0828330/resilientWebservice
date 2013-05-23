@@ -64,16 +64,6 @@ public class MonitorConfig extends HttpServlet {
 
 		Map<String, ArrayList<String>> methods = null;
 
-		/*
-		DebugCode ..
-		try {
-			MonitorManager mg = MonitorManager.getInstance();
-			mg.addMonitor(new Monitor(""));
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-		}*/
-		
 		try {
 			methods = Soap.getMethods(request.getParameter("wsdl"));
 			MiniTemplator tpl = new MiniTemplator(tplSpec);
@@ -133,8 +123,6 @@ public class MonitorConfig extends HttpServlet {
 
 			RandomData randomData = new RandomData();
 			
-			response.getWriter().println("REQUESTS:");
-			
 			for (String method : requestTemplates.keySet()) {
 				/* Generate 3 requests per method */
 				for (int i = 0; i < 3; i++) {
@@ -173,8 +161,6 @@ public class MonitorConfig extends HttpServlet {
 					trans.transform(source, result);
 					String xmlString = sw.toString();
 					
-					response.getWriter().println(xmlString);
-					
 					/* Add new request -> response pair */
 					Data tmp = new Data();
 					tmp.setMethod(method);
@@ -191,9 +177,22 @@ public class MonitorConfig extends HttpServlet {
 
 			MonitorManager.getInstance().addMonitor(new Monitor(service.getUrl()));
 			
+			MiniTemplator.TemplateSpecification tplSpec = new MiniTemplator.TemplateSpecification();
+			tplSpec.templateFileName = Misc.getTemplatePath(this, "ready.html");
+
+			MiniTemplator tpl = new MiniTemplator(tplSpec);
+			tpl.setVariable("id", service.getId().toString());
+
+			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			MiniTemplator.TemplateSpecification tplSpec = new MiniTemplator.TemplateSpecification();
+			tplSpec.templateFileName = Misc.getTemplatePath(this, "info.html");
+
+			MiniTemplator tpl = new MiniTemplator(tplSpec);
+			tpl.setVariable("message", "Error while creating your service <b>" + e.getMessage() + "</b>");
+
+			response.getWriter().print(tpl.generateOutput());
 		}
 	}
 
