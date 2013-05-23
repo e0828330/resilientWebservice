@@ -1,9 +1,14 @@
 package monitor;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
 import org.apache.log4j.Logger;
+import org.custommonkey.xmlunit.DetailedDiff;
+import org.custommonkey.xmlunit.Diff;
+import org.custommonkey.xmlunit.XMLUnit;
+import org.xml.sax.SAXException;
 
 import database.dao.ResourceFactory;
 import database.entity.Data;
@@ -23,6 +28,30 @@ public class Monitor implements Runnable {
 	
 	public Monitor(String service) {
 		this.service = service;
+
+		XMLUnit.setControlParser("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
+		XMLUnit.setTestParser("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
+		XMLUnit.setSAXParserFactory("org.apache.xerces.jaxp.SAXParserFactoryImpl");
+		XMLUnit.setTransformerFactory("org.apache.xalan.processor.TransformerFactoryImpl");
+
+	}
+	
+	/**
+	 * Returns the difference between two XML documents or NULL
+	 * if they are none
+	 * 
+	 * @param origXML
+	 * @param newML
+	 * @return
+	 * @throws SAXException
+	 * @throws IOException
+	 */
+	private String getXMlDiff(String origXML, String newML) throws SAXException, IOException {
+		DetailedDiff xmlDiff = new DetailedDiff(new Diff(origXML, newML));
+		if (xmlDiff.identical()) {
+			return null;
+		}
+	    return xmlDiff.toString().replaceAll("org.custommonkey.xmlunit.DetailedDiff", "");
 	}
 
 	private void logChange(WebService webService, String method, Log.Type type, String message) {
@@ -52,10 +81,16 @@ public class Monitor implements Runnable {
 						throw new ServiceException("Server not reachable");
 					}
 					String msg = Soap.sendRequest(service, data.getMethod(), data.getRequest());
-					if (!msg.equals(data.getResponse())) {
-						// TODO: Log to DB
+					String xmlDiff = null;
+					try {
+						xmlDiff = getXMlDiff(data.getResponse(), msg);
+					} catch (SAXException | IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					if (xmlDiff != null) {
 						log.warn("Message response changed for method " + data.getMethod() + "!");
-						logChange(webService, data.getMethod(), Log.Type.OPERATION, "Response changed!");
+						logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
 					}
 				}
 				log.debug("Waiting between checks");
