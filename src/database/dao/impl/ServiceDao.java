@@ -1,8 +1,11 @@
 package database.dao.impl;
 
+import java.util.List;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.persistence.Query;
 
 import org.apache.log4j.Logger;
 
@@ -71,8 +74,16 @@ public class ServiceDao implements IServiceDao {
 
 	@Override
 	public WebService getByURL(String url) {
-		// TODO Auto-generated method stub
-		return null;
+		this.log.debug("Try to get service with URL=" + url + "from database.");
+		EntityManager em = emf.createEntityManager();
+		Query query = em.createQuery("SELECT w FROM WebService WHERE url = :url ", WebService.class);
+		query.setParameter("url", url);
+		List<?> result = query.getResultList();
+		if (result == null || result.isEmpty()) {
+			return null;
+		}
+		this.log.debug("Found service with url " + url);
+		return (WebService) result.get(0);
 	}
 
 }
