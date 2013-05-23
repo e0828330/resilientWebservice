@@ -8,7 +8,7 @@ import javax.persistence.Persistence;
 import org.apache.log4j.Logger;
 
 import database.dao.ILogDao;
-import entity.Log;
+import database.entity.Log;
 
 public class LogDao implements ILogDao {
 	

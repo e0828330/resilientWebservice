@@ -2,7 +2,8 @@ package database.dao;
 
 import java.util.List;
 
-import entity.Data;
+import database.entity.Data;
+
 
 public interface IDataDao {
 

@@ -7,7 +7,7 @@ import javax.persistence.EntityTransaction;
 import org.apache.log4j.Logger;
 
 import database.dao.IServiceDao;
-import entity.WebService;
+import database.entity.WebService;
 
 public class ServiceDao implements IServiceDao {
 

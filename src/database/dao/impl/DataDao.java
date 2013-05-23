@@ -9,8 +9,8 @@ import javax.persistence.EntityTransaction;
 import org.apache.log4j.Logger;
 
 import database.dao.IDataDao;
-import entity.Data;
-import entity.WebService;
+import database.entity.Data;
+import database.entity.WebService;
 
 public class DataDao implements IDataDao {
 

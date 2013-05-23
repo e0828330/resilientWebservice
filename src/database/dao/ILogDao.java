@@ -1,6 +1,6 @@
 package database.dao;
 
-import entity.Log;
+import database.entity.Log;
 
 
 public interface ILogDao {

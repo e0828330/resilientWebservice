@@ -1,6 +1,6 @@
 package database.dao;
 
-import entity.WebService;
+import database.entity.WebService;
 
 public interface IServiceDao {
 
