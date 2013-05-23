@@ -5,6 +5,10 @@ import java.util.Date;
 import javax.jws.WebMethod;
 import javax.jws.WebParam;
 import javax.jws.WebService;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
+
+import resilient.xml.Changes;
+import resilient.xml.DateAdapter;
 
 @WebService(targetNamespace=Resilient.NAMESPACE)
 public interface Resilient {
@@ -16,10 +20,10 @@ public interface Resilient {
 	@WebMethod
 	public String identifySWEnvironment();
 	@WebMethod
-	public String serviceChangesSince(@WebParam(name="date") Date date);
+	public Changes serviceChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
 	@WebMethod
-	public String swEnvironmentChangesSince(@WebParam(name="date") Date date);
+	public String swEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
 	@WebMethod
-	public String hwEnvironmentChangesSince(@WebParam(name="date") Date date);
+	public String hwEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
 	
 }

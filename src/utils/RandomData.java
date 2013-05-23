@@ -33,6 +33,6 @@ public class RandomData {
 	public String getFromList(String[] list) {
 		Random randomGenerator = new Random();
 		int index = randomGenerator.nextInt(list.length);
-		return list[index];
+		return list[index].trim();
 	}
 }
