@@ -76,6 +76,10 @@ public class Soap {
 			throw new ServiceException(e);
 		}
 
+		if (result == null) {
+			throw new ServiceException("Webservice did not response to call.");
+		}
+		
 		return result.toString();
 	}
 	
