@@ -6,6 +6,7 @@ import javax.persistence.EntityTransaction;
 
 import org.apache.log4j.Logger;
 
+import database.DBConnector;
 import database.dao.IServiceDao;
 import database.entity.WebService;
 
@@ -15,8 +16,8 @@ public class ServiceDao implements IServiceDao {
 
 	private Logger log = Logger.getLogger(this.getClass());
 	
-	public ServiceDao(EntityManagerFactory emf) {
-		this.emf = emf;
+	public ServiceDao() {
+		this.emf = DBConnector.getInstance().getEMF();
 	}
 	
 	@Override

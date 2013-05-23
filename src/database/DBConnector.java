@@ -1,6 +1,7 @@
 package database;
 
 import javax.persistence.EntityManagerFactory;
+import javax.persistence.Persistence;
 
 public class DBConnector {
 	private EntityManagerFactory emf = null;
@@ -18,11 +19,16 @@ public class DBConnector {
 	}
 
 	public EntityManagerFactory getEMF() {
+		if (emf == null) {
+			emf = Persistence.createEntityManagerFactory("serviceDB");
+		}
 		return emf;
 	}
 	
 	public void close() {
-		emf.close();
+		if (emf != null) {
+			emf.close();
+		}
 	}
 	
 }

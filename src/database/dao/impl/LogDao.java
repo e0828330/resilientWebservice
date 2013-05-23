@@ -6,6 +6,7 @@ import javax.persistence.EntityTransaction;
 
 import org.apache.log4j.Logger;
 
+import database.DBConnector;
 import database.dao.ILogDao;
 import database.entity.Log;
 
@@ -15,8 +16,8 @@ public class LogDao implements ILogDao {
 	
 	private Logger log = Logger.getLogger(this.getClass());
 	
-	public LogDao(EntityManagerFactory emf) {
-		this.emf = emf;
+	public LogDao() {
+		this.emf = DBConnector.getInstance().getEMF();
 	}
 	
 	@Override

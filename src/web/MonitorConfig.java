@@ -27,6 +27,9 @@ import utils.Misc;
 import utils.RandomData;
 import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
+import database.dao.IServiceDao;
+import database.dao.ResourceFactory;
+import database.entity.WebService;
 
 /**
  * Servlet implementation class MonitorConfig
@@ -104,6 +107,14 @@ public class MonitorConfig extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
+			
+			WebService service = new WebService();
+			service.setUrl(request.getParameter("service"));
+			IServiceDao dao = ResourceFactory.getServiceDao();
+			//TODO: Fill other fields ...
+			dao.addService(service);
+			
+			
 			Map<String, ArrayList<String>> methods = Soap.getMethods(request.getParameter("service"));
 			Map<String, String> requestTemplates = Soap.getRequests(request.getParameter("service"));
 

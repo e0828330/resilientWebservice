@@ -8,6 +8,7 @@ import javax.persistence.EntityTransaction;
 
 import org.apache.log4j.Logger;
 
+import database.DBConnector;
 import database.dao.IDataDao;
 import database.entity.Data;
 import database.entity.WebService;
@@ -18,8 +19,8 @@ public class DataDao implements IDataDao {
 	
 	private Logger log = Logger.getLogger(this.getClass());
 	
-	public DataDao(EntityManagerFactory emf) {
-		this.emf = emf;
+	public DataDao() {
+		this.emf = DBConnector.getInstance().getEMF();
 	}
 	
 	@Override
