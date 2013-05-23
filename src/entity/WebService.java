@@ -19,6 +19,7 @@ public class WebService {
 	@GeneratedValue (strategy = GenerationType.IDENTITY)
 	private Long id;
 	
+	@Column (unique = true)
 	private String url;
 	
 	@Temporal (TemporalType.TIME)
@@ -35,10 +36,10 @@ public class WebService {
 	@Column(columnDefinition = "TEXT")
 	private String SWinfo;
 	
-	@OneToMany
+	@OneToMany (mappedBy = "webservice")
 	private List<Log> logs;
 	
-	@OneToMany
+	@OneToMany (mappedBy = "webservice")
 	private List<Data> data;
 	
 	public WebService() { }
