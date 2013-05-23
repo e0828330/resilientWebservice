@@ -67,11 +67,5 @@ public class ServiceDao implements IServiceDao {
 		}
 		return ws;
 	}
-	
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-		emf.close();
-	}
 
 }

@@ -3,7 +3,6 @@ package database.dao.impl;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
-import javax.persistence.Persistence;
 
 import org.apache.log4j.Logger;
 
@@ -32,11 +31,5 @@ public class LogDao implements ILogDao {
 		this.log.debug("Stored log for service " +
 				log.getWebservice().getUrl() + " to database.");
 	}
-	
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-		emf.close();
-	}	
 
 }

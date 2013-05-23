@@ -1,26 +1,13 @@
 package database;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import javax.persistence.EntityManagerFactory;
 
 public class DBConnector {
-	private Connection connect = null;
+	private EntityManagerFactory emf = null;
 	private static DBConnector instance = null;
 	
-	private String host = "localhost";
-	private String user = "root";
-	private String password = "";
-	private String database = "resilientWS";
-	
-	
 	private DBConnector() {
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			connect = DriverManager .getConnection("jdbc:mysql://" + host + "/" + database + "?user=" + user + "&password=" + password);
-		} catch (ClassNotFoundException | SQLException e) {
-			e.printStackTrace();
-		}
+		
 	}
 
 	public static DBConnector getInstance() {
@@ -30,8 +17,12 @@ public class DBConnector {
 		return instance;
 	}
 
-	public Connection getConnect() {
-		return connect;
+	public EntityManagerFactory getEMF() {
+		return emf;
+	}
+	
+	public void close() {
+		emf.close();
 	}
 	
 }

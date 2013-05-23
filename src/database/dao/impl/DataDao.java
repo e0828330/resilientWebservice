@@ -34,7 +34,6 @@ public class DataDao implements IDataDao {
 		this.log.debug("Stored data.");
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<Data> getData(Long id) {
 		this.log.debug("Selecting all data for webservice with ID=" + id + ".");
@@ -49,11 +48,5 @@ public class DataDao implements IDataDao {
 		em.close();
 		return result;
 	}
-	
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-		emf.close();
-	}	
 
 }
