@@ -76,9 +76,10 @@ public class ServiceDao implements IServiceDao {
 	public WebService getByURL(String url) {
 		this.log.debug("Try to get service with URL=" + url + "from database.");
 		EntityManager em = emf.createEntityManager();
-		Query query = em.createQuery("SELECT w FROM WebService WHERE url = :url ", WebService.class);
+		Query query = em.createQuery("SELECT w FROM WebService w WHERE url = :url ", WebService.class);
 		query.setParameter("url", url);
 		List<?> result = query.getResultList();
+		em.close();
 		if (result == null || result.isEmpty()) {
 			return null;
 		}

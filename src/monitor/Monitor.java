@@ -1,6 +1,12 @@
 package monitor;
 
+import java.util.List;
+
 import org.apache.log4j.Logger;
+
+import database.dao.ResourceFactory;
+import database.entity.Data;
+import database.entity.WebService;
 
 import utils.ServiceException;
 import utils.Soap;
@@ -19,31 +25,24 @@ public class Monitor implements Runnable {
 
 	@Override
 	public void run() {
-		// TODO: This is just for testing
-		String expected = "";
-		/*try {
-			// TODO: The expected value should come from the database
-		//	expected = Soap.sendRequest("", "");
-	
-		} catch (ServiceException e) {
-			log.error(e.getMessage());
-			return;
-		}*/
+		log.info("Starting monitoring of " + service);
 
-		log.debug("expected message = " + expected);
+		WebService webService = ResourceFactory.getServiceDao().getByURL(service);
+		List<Data> dataList = webService.getData();
 		
 		while (true) {
 			try {
 				Thread.sleep(TIMEOUT);
-				if (!Soap.isAvailable("http://localhost:9999/WS/Test?wsdl")) {
-					throw new ServiceException("Server not reachable");
-				}
-				// TODO: Fill in params (service, request from database)
-				//String msg = Soap.sendRequest("", "");
-				String msg = "";
-				if (!msg.equals(expected)) {
-					// TODO: Log to DB
-					log.warn("Message response changed!");
+				// Verify method responses
+				for (Data data : dataList) {
+					if (!Soap.isAvailable(service)) {
+						throw new ServiceException("Server not reachable");
+					}
+					String msg = Soap.sendRequest(service, data.getMethod(), data.getRequest());
+					if (!msg.equals(data.getResponse())) {
+						// TODO: Log to DB
+						log.warn("Message response changed for method " + data.getMethod() + "!");
+					}
 				}
 				log.debug("Waiting between checks");
 			} catch (ServiceException e) {

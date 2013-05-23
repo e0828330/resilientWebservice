@@ -14,11 +14,13 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamResult;
+
+import monitor.Monitor;
+import monitor.MonitorManager;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -186,6 +188,8 @@ public class MonitorConfig extends HttpServlet {
 			
 			IServiceDao dao = ResourceFactory.getServiceDao();
 			dao.addService(service);
+
+			MonitorManager.getInstance().addMonitor(new Monitor(service.getUrl()));
 			
 
 		} catch (Exception e) {
