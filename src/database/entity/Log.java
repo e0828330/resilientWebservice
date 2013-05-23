@@ -21,7 +21,7 @@ public class Log {
 	@Temporal (TemporalType.TIMESTAMP)
 	private Date timestamp;
 
-	@Column(columnDefinition = "TEXT")
+	@Column(columnDefinition = "MEDIUMTEXT")
 	private String message;
 
 	private String name;

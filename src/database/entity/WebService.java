@@ -1,8 +1,10 @@
 package database.entity;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -25,21 +27,21 @@ public class WebService {
 	@Temporal (TemporalType.TIME)
 	private Date timestamp;
 	
-	@Column(columnDefinition = "TEXT")
+	@Column(columnDefinition = "MEDIUMTEXT")
 	private String wsdl;
 	
 	private String version;
 	
-	@Column(columnDefinition = "TEXT")
+	@Column(columnDefinition = "MEDIUMTEXT")
 	private String HWinfo;
 	
-	@Column(columnDefinition = "TEXT")
+	@Column(columnDefinition = "MEDIUMTEXT")
 	private String SWinfo;
 	
 	@OneToMany (mappedBy = "webservice")
 	private List<Log> logs;
 	
-	@OneToMany (mappedBy = "webservice")
+	@OneToMany (mappedBy = "webservice", cascade=CascadeType.ALL)
 	private List<Data> data;
 	
 	public WebService() { }
@@ -99,12 +101,26 @@ public class WebService {
 		this.url = url;
 	}
 
+	public void addLog(Log log) {
+		if (logs == null) {
+			logs = new ArrayList<>();
+		}
+		logs.add(log);
+	}
+	
 	public List<Log> getLogs() {
 		return logs;
 	}
 
 	public void setLogs(List<Log> logs) {
 		this.logs = logs;
+	}
+	
+	public void addData(Data entry) {
+		if (data == null) {
+			data = new ArrayList<>();
+		}
+		data.add(entry);
 	}
 
 	public List<Data> getData() {

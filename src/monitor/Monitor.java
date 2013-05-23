@@ -21,14 +21,14 @@ public class Monitor implements Runnable {
 	public void run() {
 		// TODO: This is just for testing
 		String expected = "";
-		try {
+		/*try {
 			// TODO: The expected value should come from the database
-			expected = Soap.sendRequest("", "");
+		//	expected = Soap.sendRequest("", "");
 	
 		} catch (ServiceException e) {
 			log.error(e.getMessage());
 			return;
-		}
+		}*/
 
 		log.debug("expected message = " + expected);
 		
@@ -39,7 +39,8 @@ public class Monitor implements Runnable {
 					throw new ServiceException("Server not reachable");
 				}
 				// TODO: Fill in params (service, request from database)
-				String msg = Soap.sendRequest("", "");
+				//String msg = Soap.sendRequest("", "");
+				String msg = "";
 				if (!msg.equals(expected)) {
 					// TODO: Log to DB
 					log.warn("Message response changed!");

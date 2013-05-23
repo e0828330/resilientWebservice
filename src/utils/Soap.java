@@ -1,7 +1,5 @@
 package utils;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.HttpURLConnection;
@@ -15,11 +13,6 @@ import java.util.Map;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.soap.MessageFactory;
-import javax.xml.soap.MimeHeaders;
-import javax.xml.soap.SOAPConnection;
-import javax.xml.soap.SOAPConnectionFactory;
-import javax.xml.soap.SOAPMessage;
 
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -31,54 +24,54 @@ import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 import com.eviware.soapui.SoapUI;
+import com.eviware.soapui.impl.WsdlInterfaceFactory;
 import com.eviware.soapui.impl.wsdl.WsdlInterface;
 import com.eviware.soapui.impl.wsdl.WsdlOperation;
 import com.eviware.soapui.impl.wsdl.WsdlProject;
+import com.eviware.soapui.impl.wsdl.WsdlRequest;
+import com.eviware.soapui.impl.wsdl.WsdlSubmit;
+import com.eviware.soapui.impl.wsdl.WsdlSubmitContext;
 import com.eviware.soapui.impl.wsdl.support.wsdl.WsdlImporter;
 import com.eviware.soapui.model.iface.Operation;
+import com.eviware.soapui.model.iface.Response;
 
 public class Soap {
 
-	private static SOAPConnectionFactory connectionFactory;
-	private static MessageFactory msgFactory;
 
 	/**
 	 * Sends a request to the webservice specified and returns the response as
 	 * XML string
 	 * 
 	 * @param serviceUrl
+	 * @param method
 	 * @param xmlRequest
 	 * @return
 	 * @throws ServiceException
 	 */
-	public static String sendRequest(String serviceUrl, String xmlRequest) throws ServiceException {
-
-		ByteArrayOutputStream result = new ByteArrayOutputStream();
-
+	public static String sendRequest(String serviceUrl, String method, String xmlRequest) throws ServiceException {
+		String result = null;
 		try {
-			if (Soap.connectionFactory == null) {
-				Soap.connectionFactory = SOAPConnectionFactory.newInstance();
+
+			SoapUI.setStandalone(true);
+			WsdlProject project = new WsdlProject();
+			project.setTimeout(1500);
+			
+			if (!Soap.isAvailable(serviceUrl)) {
+				throw new ServiceException("Server not reachable"); 
 			}
-
-			if (Soap.msgFactory == null) {
-				Soap.msgFactory = MessageFactory.newInstance();
-			}
-
-			SOAPConnection connection = Soap.connectionFactory.createConnection();
-
-			MimeHeaders mimeHeaders = new MimeHeaders();
-			mimeHeaders.addHeader("Content-Type", "text/xml; charset=UTF-8");
-
-			// TODO: hardcoded
-			xmlRequest = "<soapenv:Envelope xmlns:soapenv='http://schemas.xmlsoap.org/soap/envelope/' xmlns:ser='http://service/'>" + "<soapenv:Header/>" + "<soapenv:Body>" + "<ser:doCalc>"
-					+ "<a>18</a>" + "<b>50</b>" + "</ser:doCalc>" + "</soapenv:Body>" + "</soapenv:Envelope>";
-
-			// TODO: hardcoded
-			URL endpoint = new URL("http://localhost:9999/WS/Test");
-			SOAPMessage request = Soap.msgFactory.createMessage(mimeHeaders, new ByteArrayInputStream(xmlRequest.getBytes()));
-			SOAPMessage response = connection.call(request, endpoint);
-
-			response.writeTo(result);
+			
+			WsdlInterface iface = WsdlInterfaceFactory.importWsdl(project, serviceUrl, true)[0];
+			WsdlOperation operation = (WsdlOperation) iface.getOperationByName(method);
+			WsdlRequest request = operation.addNewRequest("Request"); 
+			request.setRequestContent(xmlRequest);
+			
+			WsdlSubmit<?> submit = (WsdlSubmit<?>) request.submit(new WsdlSubmitContext(request), false);
+			
+			Response response = submit.getResponse();
+			result = response.getContentAsString();
+			SoapUI.shutdown(); 
+			
+			
 		} catch (Exception e) {
 			throw new ServiceException(e);
 		}
@@ -105,6 +98,7 @@ public class Soap {
 		project.setTimeout(15);
 		WsdlInterface[] wsdls = WsdlImporter.importWsdl(project, serviceUrl);
 		WsdlInterface wsdl = wsdls[0];
+		wsdl.getEndpoints();
 		for (Operation operation : wsdl.getOperationList()) {
 			WsdlOperation op = (WsdlOperation) operation;
 			result.put(op.getName(), op.createRequest(true));

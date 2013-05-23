@@ -12,4 +12,6 @@ public interface IServiceDao {
 	
 	public WebService getService(Long id);
 	
+	public WebService getByURL(String url);
+	
 }

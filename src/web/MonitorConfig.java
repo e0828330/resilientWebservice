@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Map;
 
 import javax.servlet.ServletException;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMSource;
@@ -29,6 +31,7 @@ import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
 import database.dao.IServiceDao;
 import database.dao.ResourceFactory;
+import database.entity.Data;
 import database.entity.WebService;
 
 /**
@@ -109,10 +112,13 @@ public class MonitorConfig extends HttpServlet {
 		try {
 			
 			WebService service = new WebService();
+			/* Web service static fields */
+			service.setTimestamp(new Date());
+			service.setVersion(request.getParameter("version"));
+			service.setHWinfo(request.getParameter("hwconfig"));
+			service.setSWinfo(request.getParameter("swconfig"));
 			service.setUrl(request.getParameter("service"));
-			IServiceDao dao = ResourceFactory.getServiceDao();
-			//TODO: Fill other fields ...
-			dao.addService(service);
+			
 			
 			
 			Map<String, ArrayList<String>> methods = Soap.getMethods(request.getParameter("service"));
@@ -166,8 +172,21 @@ public class MonitorConfig extends HttpServlet {
 					String xmlString = sw.toString();
 					
 					response.getWriter().println(xmlString);
+					
+					/* Add new request -> response pair */
+					Data tmp = new Data();
+					tmp.setMethod(method);
+					tmp.setRequest(xmlString);
+					tmp.setResponse(Soap.sendRequest(service.getUrl(), method, xmlString));
+					tmp.setWebservice(service);
+					service.addData(tmp);
+					
 				}
 			}
+			
+			IServiceDao dao = ResourceFactory.getServiceDao();
+			dao.addService(service);
+			
 
 		} catch (Exception e) {
 			e.printStackTrace();

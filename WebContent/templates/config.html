@@ -37,6 +37,11 @@
 <body>
 <h1>Monitor Configuration</h1>
 <form action="MonitorConfig" method="post">
+<label for="version">Version:</label><input id="version" name="version" type="text" placeholder="Version of your web service"/><br /><br />
+<label for="hwconfig">Your server's hardware configuration:</label><br />
+<textarea id="hwconfig" name="hwconfig" placeholder="E.g. Output of lspci on Linux" cols="80" rows="20"></textarea><br /><br />
+<label for="swconfig">Your server's software configuration:</label><br />
+<textarea id="swconfig" name="swconfig" placeholder="E.g. Output of rpm -qa or dbkg -l on Linux" cols="80" rows="20"></textarea><br /><br />
 <input type="hidden" name="service" value="${service}" />
 <!-- $beginBlock method -->
 <h2>${name}</h2>

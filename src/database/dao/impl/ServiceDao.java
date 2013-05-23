@@ -69,4 +69,10 @@ public class ServiceDao implements IServiceDao {
 		return ws;
 	}
 
+	@Override
+	public WebService getByURL(String url) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }
