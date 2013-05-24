@@ -10,9 +10,7 @@ import javax.servlet.ServletContextListener;
 
 import monitor.Monitor;
 import monitor.MonitorManager;
-
 import database.DBConnector;
-import database.dao.ILogDao;
 import database.dao.ResourceFactory;
 import database.entity.WebService;
 
