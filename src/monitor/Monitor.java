@@ -71,33 +71,53 @@ public class Monitor implements Runnable {
 		WebService webService = ResourceFactory.getServiceDao().getByURL(service);
 		List<Data> dataList = webService.getData();
 		
+		boolean reachable = true; // TODO: init from last log state
 		while (true) {
 			try {
 				Thread.sleep(TIMEOUT);
-				// Verify method responses
+				
+				/* Check the WSDL contents */
+				
+				/* Loop through request / response pairs */
 				for (Data data : dataList) {
+					
+					/* Check availability */
 					if (!Soap.isAvailable(service)) {
 						logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
-						throw new ServiceException("Server not reachable");
+						reachable = false;
+						break; // Exit the loop and check again next round
+					} else if (!reachable) {
+						logChange(webService, "", Log.Type.AVAILABILITY, "Server is back online");
+						reachable = true;
 					}
-					String msg = Soap.sendRequest(service, data.getMethod(), data.getRequest());
-					String xmlDiff = null;
+					
+
+					/* Check response */
+					String response = null;
 					try {
-						xmlDiff = getXMlDiff(data.getResponse(), msg);
-					} catch (SAXException | IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
+						response = Soap.sendRequest(service, data.getMethod(), data.getRequest());
 					}
-					if (xmlDiff != null) {
-						log.warn("Message response changed for method " + data.getMethod() + "!");
-						logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
+					catch (ServiceException e) {
+						logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
 					}
+
+					if (response != null) {
+						String xmlDiff = null;
+						try {
+							xmlDiff = getXMlDiff(data.getResponse(), response);
+						} catch (SAXException | IOException e) {
+							log.error("Monitor recived an error:" + e.getMessage());
+						}
+						if (xmlDiff != null) {
+							// TODO: avoid logging the same thing in a row
+							log.warn("Message response changed for method " + data.getMethod() + "!");
+							logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
+						}
+					}
+					
 				}
+
 				log.debug("Waiting between checks");
-			} catch (ServiceException e) {
-				// TODO: Log to DB
-				logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
-				log.warn(e.getMessage());
 			}
 			catch (InterruptedException e) {
 				log.info("Monitor will quit!");
