@@ -110,6 +110,7 @@ public class MonitorConfig extends HttpServlet {
 			service.setHWinfo(request.getParameter("hwconfig"));
 			service.setSWinfo(request.getParameter("swconfig"));
 			service.setUrl(request.getParameter("service"));
+			service.setWsdl(Soap.downloadWSDL(request.getParameter("service")));
 			
 			
 			

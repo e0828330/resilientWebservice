@@ -10,14 +10,13 @@ import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.xml.sax.SAXException;
 
+import utils.ServiceException;
+import utils.Soap;
 import database.dao.ILogDao;
 import database.dao.ResourceFactory;
 import database.entity.Data;
 import database.entity.Log;
 import database.entity.WebService;
-
-import utils.ServiceException;
-import utils.Soap;
 
 public class Monitor implements Runnable {
 
@@ -25,10 +24,13 @@ public class Monitor implements Runnable {
 
 	private String service;
 
+	private WebService webService;
+	
 	private Logger log = Logger.getLogger(Monitor.class);
 
 	public Monitor(String service) {
 		this.service = service;
+		this.webService = ResourceFactory.getServiceDao().getByURL(service);
 
 		XMLUnit.setControlParser("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
 		XMLUnit.setTestParser("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
@@ -54,6 +56,14 @@ public class Monitor implements Runnable {
 		return xmlDiff.toString().replaceAll("org.custommonkey.xmlunit.DetailedDiff", "");
 	}
 
+	/**
+	 * Logs message to database
+	 * 
+	 * @param webService
+	 * @param method
+	 * @param type
+	 * @param message
+	 */
 	private void logChange(WebService webService, String method, Log.Type type, String message) {
 		Log entry = new Log();
 		entry.setMessage(message);
@@ -64,11 +74,71 @@ public class Monitor implements Runnable {
 		ResourceFactory.getLogDao().addLog(entry);
 	}
 
+	/**
+	 * Checks whether the request returns the expected
+	 * response and logs changed to the database
+	 *  
+	 * @param data
+	 */
+	private void checkRequest(Data data) {
+		ILogDao logDao = ResourceFactory.getLogDao();
+		String response = null;
+		try {
+			response = Soap.sendRequest(service, data.getMethod(), data.getRequest());
+		} catch (ServiceException e) {
+			return;
+		}
+
+		if (response != null) {
+			String xmlDiff = null;
+			try {
+				xmlDiff = getXMlDiff(data.getResponse(), response);
+			} catch (SAXException | IOException e) {
+				log.error("Monitor recived an error:" + e.getMessage());
+			}
+
+			Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION);
+
+			if (xmlDiff != null) {
+				if (lastLog == null || !lastLog.getMessage().equals(xmlDiff)) {
+					log.warn("Message response changed for method " + data.getMethod() + "!");
+					logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
+				}
+			} else if (lastLog != null && !lastLog.getMessage().equals("Method is returning the expected result again.")) {
+				log.info("Message response for method " + data.getMethod() + " is back to expected.");
+				logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.");
+			}
+		}
+	}
+	
+	/**
+	 * Checks whether the WSDL file has changed
+	 * 
+	 * @throws IOException
+	 * @throws SAXException
+	 */
+	private void checkWSDL() throws IOException, SAXException {
+		ILogDao logDao = ResourceFactory.getLogDao();
+        String response = Soap.downloadWSDL(service);
+
+        String xmlDiff = getXMlDiff(webService.getWsdl(), response);
+        
+        Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.WSDL);
+        
+        if (xmlDiff != null) {
+			if (lastLog == null || !lastLog.getMessage().equals(xmlDiff)) {
+				log.warn("Original WSDL changed!");
+				logChange(webService, "", Log.Type.WSDL, xmlDiff);
+			}
+		} else if (lastLog != null && !lastLog.getMessage().equals("WSDL is returning the expected result again.")) {
+			logChange(webService, "", Log.Type.WSDL,  "WSDL is returning the expected result again.");
+		}
+	}
+
 	@Override
 	public void run() {
 		log.info("Starting monitoring of " + service);
 
-		WebService webService = ResourceFactory.getServiceDao().getByURL(service);
 		List<Data> dataList = webService.getData();
 		ILogDao logDao = ResourceFactory.getLogDao();
 
@@ -77,7 +147,11 @@ public class Monitor implements Runnable {
 				Thread.sleep(TIMEOUT);
 
 				/* Check the WSDL contents */
-				// TODO
+				try {
+					checkWSDL();
+				} catch (IOException | SAXException e) {
+					log.warn("Error while checking WSDL contents");
+				}
 
 				/* Loop through request / response pairs */
 				for (Data data : dataList) {
@@ -96,34 +170,8 @@ public class Monitor implements Runnable {
 						}
 					}
 
-					/* Check response */
-					String response = null;
-					try {
-						response = Soap.sendRequest(service, data.getMethod(), data.getRequest());
-					} catch (ServiceException e) {
-						logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
-					}
-
-					if (response != null) {
-						String xmlDiff = null;
-						try {
-							xmlDiff = getXMlDiff(data.getResponse(), response);
-						} catch (SAXException | IOException e) {
-							log.error("Monitor recived an error:" + e.getMessage());
-						}
-
-						Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION);
-
-						if (xmlDiff != null) {
-							if (lastLog == null || !lastLog.getMessage().equals(xmlDiff)) {
-								log.warn("Message response changed for method " + data.getMethod() + "!");
-								logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
-							}
-						} else if (lastLog != null && !lastLog.getMessage().equals("Method is returning the expected result again.")) {
-							log.info("Message response for method " + data.getMethod() + " is back to expected.");
-							logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.");
-						}
-					}
+					/* Check request */
+					checkRequest(data);
 
 				}
 
