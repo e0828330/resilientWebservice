@@ -45,12 +45,13 @@
 <input type="hidden" name="service" value="${service}" />
 <!-- $beginBlock method -->
 <h2>${name}</h2>
+<input type="checkbox" id="${idprefix}_s" name="${name}_skip" value="1"/>&nbsp;<label for="${idprefix}_s">Skip (Use when response is not deterministic)</label>
 <!-- $beginBlock param -->
 <h3>Parameter: ${param}</h3>
 <input required="required" type="radio" id="${idprefix}_0" name="${name}_${param}" onclick="$('#${idprefix}_cfg').toggle(false)" value="${empty}"/>&nbsp;<label for="${idprefix}_0">Empty</label>
 <input required="required" type="radio" id="${idprefix}_1" name="${name}_${param}" onclick="$('#${idprefix}_cfg').toggle(false)" value="${number}"/>&nbsp;<label for="${idprefix}_1">Number</label>
 <input required="required" type="radio" id="${idprefix}_2" name="${name}_${param}" onclick="$('#${idprefix}_cfg').toggle(false)" value="${word}"/>&nbsp;<label for="${idprefix}_2">Word</label>
-<input required="required" type="radio" id="${idprefix}}_3" name="${name}_${param}" onclick="$('#${idprefix}_cfg').toggle(true)" value="${other}"/>&nbsp;<label for="${idprefix}_3">Other</label>
+<input required="required" type="radio" id="${idprefix}_3" name="${name}_${param}" onclick="$('#${idprefix}_cfg').toggle(true)" value="${other}"/>&nbsp;<label for="${idprefix}_3">Other</label>
 <input type="button" style="display:none" onclick="configureCatchWords('${idprefix}_data')" id="${idprefix}_cfg" value="Configure" />
 <input type="hidden" value="" id="${idprefix}_data" name="${name}_${param}_data" />
 <br />

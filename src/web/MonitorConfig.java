@@ -124,6 +124,9 @@ public class MonitorConfig extends HttpServlet {
 			RandomData randomData = new RandomData();
 			
 			for (String method : requestTemplates.keySet()) {
+				if (request.getParameter(method + "_skip") != null) {
+					continue;
+				}
 				/* Generate 3 requests per method */
 				for (int i = 0; i < 3; i++) {
 					Document document = loader.parse(new InputSource(new StringReader(requestTemplates.get(method))));
@@ -133,7 +136,7 @@ public class MonitorConfig extends HttpServlet {
 						ValueType type = ValueType.valueOf(request.getParameter(method + "_" + param));
 						Element paramElement = (Element) document.getElementsByTagName(param).item(0);
 						
-						/* Generate param values */
+						/* Generate parameter values */
 						switch (type) {
 							case EMPTY:
 								paramElement.setTextContent("");
