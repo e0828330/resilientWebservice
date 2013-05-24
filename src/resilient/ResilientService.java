@@ -17,6 +17,7 @@ import database.entity.Log;
 import resilient.xml.Change;
 import resilient.xml.Changes;
 import resilient.xml.DateAdapter;
+import resilient.xml.Identity;
 
 @WebService(endpointInterface="resilient.Resilient", targetNamespace=Resilient.NAMESPACE)
 public class ResilientService implements Resilient {
@@ -24,10 +25,17 @@ public class ResilientService implements Resilient {
 	@Resource
 	private WebServiceContext ctx;
 	
+	private Long getId() {
+		Long id = Long.parseLong((String) ctx.getMessageContext().get(MessageContext.QUERY_STRING));
+		return id;
+	}
+	
 	@Override
 	@WebMethod
-	public String identifyYourSelf() {
-		return "Hello I am a Service:" + ctx.getMessageContext().get(MessageContext.QUERY_STRING);
+	public Identity identifyYourSelf() {
+		database.entity.WebService service = ResourceFactory.getServiceDao().getService(getId());
+		Identity identity = new Identity(service.getVersion(), service.getUrl(), service.getTimestamp()); 
+		return identity;
 	}
 
 	@Override
@@ -40,7 +48,7 @@ public class ResilientService implements Resilient {
 	@Override
 	@WebMethod
 	public Changes serviceChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
-		Long id = Long.parseLong((String) ctx.getMessageContext().get(MessageContext.QUERY_STRING));
+		Long id = getId();
 		Changes changes = new Changes();
 		List<Log> logs = ResourceFactory.getLogDao().getSinceDate(id, date);
 		for (Log log : logs) {

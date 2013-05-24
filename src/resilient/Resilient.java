@@ -9,6 +9,7 @@ import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 import resilient.xml.Changes;
 import resilient.xml.DateAdapter;
+import resilient.xml.Identity;
 
 @WebService(targetNamespace=Resilient.NAMESPACE)
 public interface Resilient {
@@ -16,7 +17,7 @@ public interface Resilient {
 	static final String NAMESPACE = "http://rws.tuwien.ac.at/DigitalPreservation";
 	
 	@WebMethod
-	public String identifyYourSelf();
+	public Identity identifyYourSelf();
 	@WebMethod
 	public String identifySWEnvironment();
 	@WebMethod
