@@ -7,6 +7,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -31,6 +34,7 @@ import utils.Misc;
 import utils.RandomData;
 import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
+import database.DBConnector;
 import database.dao.IDataDao;
 import database.dao.ILogDao;
 import database.dao.IServiceDao;
@@ -46,12 +50,6 @@ import database.entity.WebService;
 @WebServlet("/MonitorConfig")
 public class MonitorConfig extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	
-	private IServiceDao serviceDao;
-	
-	private ILogDao logDao;
-	
-	private IDataDao dataDao;
 	
 	private MiniTemplator tpl;
 
@@ -77,8 +75,14 @@ public class MonitorConfig extends HttpServlet {
 		Map<String, ArrayList<String>> methods = null;
 
 		// TODO: When service already exists, show hardware, software, version for editing
-		serviceDao = ResourceFactory.getServiceDao();
+		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();					
+		IServiceDao serviceDao = ResourceFactory.getServiceDao(em);
 		WebService webService = serviceDao.getByURL(request.getParameter("wsdl"));
+		tx.commit();
+		em.close();
 		if (webService != null) {
 			tpl.setVariable("value_version", webService.getVersion() != null ? webService.getVersion() : "");
 			tpl.setVariable("value_hwconfig", webService.getHWinfo() != null ? webService.getHWinfo() : "");
@@ -130,10 +134,16 @@ public class MonitorConfig extends HttpServlet {
 		 *  Replace data with newly generated ones.
 		 */		
 		try {
+			EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+			EntityManager em = emf.createEntityManager();
+			EntityTransaction tx = em.getTransaction();
+			tx.begin();						
 			boolean serviceExists = false;
-			WebService service = serviceDao.getByURL(request.getParameter("service"));
+			WebService service = ResourceFactory.getServiceDao(em).getByURL(request.getParameter("service"));
+			tx.commit();
+			em.close();
+			
 
-			logDao = ResourceFactory.getLogDao();
 			
 			// Create new service if id does not already exist
 			if (service == null) {
@@ -143,8 +153,14 @@ public class MonitorConfig extends HttpServlet {
 			else {
 				serviceExists = true;
 				// delete from data if service already exists
-				dataDao = ResourceFactory.getDataDao();
-				dataDao.deleteByWebService(service);				
+				em = emf.createEntityManager();
+				tx = em.getTransaction();
+				tx.begin();					
+				ResourceFactory.getDataDao(em).deleteByWebService(service);
+				tx.commit();
+				em.close();				
+				service.setData(new ArrayList<Data>());
+				
 			}		
 			
 			// stop monitor
@@ -153,6 +169,9 @@ public class MonitorConfig extends HttpServlet {
 			/* Web service static fields */
 			service.setTimestamp(new Date());
 			
+			em = emf.createEntityManager();
+			tx = em.getTransaction();
+			tx.begin();
 			// Software
 			if (serviceExists && !service.getSWinfo().equals(request.getParameter("swconfig"))) {
 				Log log = new Log();
@@ -160,7 +179,7 @@ public class MonitorConfig extends HttpServlet {
 				log.setWebservice(service);
 				log.setType(Type.SOFTWARE);
 				log.setMessage(request.getParameter("swconfig"));
-				logDao.addLog(log);
+				ResourceFactory.getLogDao(em).addLog(log);
 			}
 			service.setSWinfo(request.getParameter("swconfig"));
 			// Hardware
@@ -170,7 +189,7 @@ public class MonitorConfig extends HttpServlet {
 				log.setWebservice(service);
 				log.setType(Type.HARDWARE);
 				log.setMessage(request.getParameter("hwconfig"));
-				logDao.addLog(log);
+				ResourceFactory.getLogDao(em).addLog(log);
 			}			
 			service.setHWinfo(request.getParameter("hwconfig"));
 			// Version
@@ -180,12 +199,13 @@ public class MonitorConfig extends HttpServlet {
 				log.setWebservice(service);
 				log.setType(Type.VERSION);
 				log.setMessage(request.getParameter("version"));
-				logDao.addLog(log);
+				ResourceFactory.getLogDao(em).addLog(log);
 			}				
 			service.setVersion(request.getParameter("version"));
 			
 			service.setWsdl(Soap.downloadWSDL(request.getParameter("service")));
-			
+			tx.commit();
+			em.close();
 
 			
 			Map<String, ArrayList<String>> methods = Soap.getMethods(request.getParameter("service"));
@@ -249,13 +269,17 @@ public class MonitorConfig extends HttpServlet {
 				}
 			}
 			
-			serviceDao = ResourceFactory.getServiceDao();
+			em = emf.createEntityManager();
+			tx = em.getTransaction();
+			tx.begin();			
 			if (serviceExists) {
-				serviceDao.updateService(service);
+				ResourceFactory.getServiceDao(em).updateService(service);
 			}
 			else {
-				serviceDao.addService(service);
+				ResourceFactory.getServiceDao(em).addService(service);
 			}
+			tx.commit();
+			em.close();
 
 			MonitorManager.getInstance().addMonitor(new Monitor(service.getUrl()));
 			
@@ -266,8 +290,13 @@ public class MonitorConfig extends HttpServlet {
 			tpl.setVariable("id", service.getId().toString());
 
 			service.setGeneratedWSDL(Soap.generateResilientWSDL(service.getWsdl(), service.getId()));
-			serviceDao.updateService(service);
-
+			em = emf.createEntityManager();
+			tx = em.getTransaction();
+			tx.begin();		
+			ResourceFactory.getServiceDao(em).updateService(service);
+			tx.commit();
+			em.close();
+			
 			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {

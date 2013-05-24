@@ -4,6 +4,10 @@ import java.io.IOException;
 import java.util.Date;
 import java.util.List;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
+
 import org.apache.log4j.Logger;
 import org.custommonkey.xmlunit.DetailedDiff;
 import org.custommonkey.xmlunit.Diff;
@@ -12,7 +16,9 @@ import org.xml.sax.SAXException;
 
 import utils.ServiceException;
 import utils.Soap;
+import database.DBConnector;
 import database.dao.ILogDao;
+import database.dao.IServiceDao;
 import database.dao.ResourceFactory;
 import database.entity.Data;
 import database.entity.Log;
@@ -30,7 +36,14 @@ public class Monitor implements Runnable {
 
 	public Monitor(String service) {
 		this.service = service;
-		this.webService = ResourceFactory.getServiceDao().getByURL(service);
+		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+		EntityManager em = emf.createEntityManager();
+		IServiceDao dao = ResourceFactory.getServiceDao(em);
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+		this.webService = dao.getByURL(service);
+		tx.commit();
+		em.close();
 
 		XMLUnit.setControlParser("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
 		XMLUnit.setTestParser("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");
@@ -71,7 +84,14 @@ public class Monitor implements Runnable {
 		entry.setType(type);
 		entry.setTimestamp(new Date());
 		entry.setWebservice(webService);
-		ResourceFactory.getLogDao().addLog(entry);
+		
+		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();		
+		ResourceFactory.getLogDao(em).addLog(entry);
+		tx.commit();
+		em.close();
 	}
 
 	/**
@@ -81,7 +101,11 @@ public class Monitor implements Runnable {
 	 * @param data
 	 */
 	private void checkRequest(Data data) {
-		ILogDao logDao = ResourceFactory.getLogDao();
+		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+		EntityManager em = emf.createEntityManager();
+		ILogDao logDao = ResourceFactory.getLogDao(em);
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
 		String response = null;
 		try {
 			response = Soap.sendRequest(service, data.getMethod(), data.getRequest());
@@ -109,6 +133,9 @@ public class Monitor implements Runnable {
 				logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.");
 			}
 		}
+		
+		tx.commit();
+		em.close();		
 	}
 	
 	/**
@@ -118,7 +145,11 @@ public class Monitor implements Runnable {
 	 * @throws SAXException
 	 */
 	private void checkWSDL() throws IOException, SAXException {
-		ILogDao logDao = ResourceFactory.getLogDao();
+		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+		EntityManager em = emf.createEntityManager();
+		ILogDao logDao = ResourceFactory.getLogDao(em);
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
         String response = Soap.downloadWSDL(service);
 
         String xmlDiff = getXMlDiff(webService.getWsdl(), response);
@@ -133,6 +164,8 @@ public class Monitor implements Runnable {
 		} else if (lastLog != null && !lastLog.getMessage().equals("WSDL is returning the expected result again.")) {
 			logChange(webService, "", Log.Type.WSDL,  "WSDL is returning the expected result again.");
 		}
+		tx.commit();
+		em.close();	        
 	}
 
 	@Override
@@ -140,7 +173,10 @@ public class Monitor implements Runnable {
 		log.info("Starting monitoring of " + service);
 
 		List<Data> dataList = webService.getData();
-		ILogDao logDao = ResourceFactory.getLogDao();
+		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+		EntityManager em = emf.createEntityManager();
+		ILogDao logDao = ResourceFactory.getLogDao(em);
+
 
 		while (true) {
 			try {
@@ -158,13 +194,20 @@ public class Monitor implements Runnable {
 
 					/* Check availability */
 					if (!Soap.isAvailable(service)) {
+						EntityTransaction tx = em.getTransaction();
+						tx.begin();						
 						Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.AVAILABILITY);
+						tx.commit();
 						if (lastLog == null || !lastLog.getMessage().equals("Server not reachable")) {
 							logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
 						}
+						
 						break; // Exit the loop and check again next round
 					} else {
+						EntityTransaction tx = em.getTransaction();
+						tx.begin();
 						Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.AVAILABILITY);
+						tx.commit();
 						if (lastLog == null || !lastLog.getMessage().equals("Server is back online")) {
 							logChange(webService, "", Log.Type.AVAILABILITY, "Server is back online");
 						}
@@ -178,6 +221,7 @@ public class Monitor implements Runnable {
 				log.debug("Waiting between checks");
 			} catch (InterruptedException e) {
 				log.info("Monitor will quit!");
+				em.close();
 				return; // Exit
 			}
 		}

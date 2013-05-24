@@ -2,12 +2,16 @@ package web;
 
 import java.io.IOException;
 
+import javax.persistence.EntityManager;
+import javax.persistence.EntityManagerFactory;
+import javax.persistence.EntityTransaction;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import database.DBConnector;
 import database.dao.ResourceFactory;
 import database.entity.WebService;
 
@@ -29,8 +33,14 @@ public class ServiceGenerator extends HttpServlet {
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
-			WebService service = ResourceFactory.getServiceDao().getService(Long.parseLong(request.getParameter("id")));
+			EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+			EntityManager em = emf.createEntityManager();
+			EntityTransaction tx = em.getTransaction();
+			tx.begin();					
+			WebService service = ResourceFactory.getServiceDao(em).getService(Long.parseLong(request.getParameter("id")));
 			response.getWriter().print(service.getGeneratedWSDL());
+			tx.commit();
+			em.close();
 		}
 		catch (Exception e) {
 			e.printStackTrace();
