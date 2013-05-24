@@ -25,7 +25,7 @@ public class WebService {
 	@Column (unique = true)
 	private String url;
 	
-	@Temporal (TemporalType.TIME)
+	@Temporal (TemporalType.TIMESTAMP)
 	private Date timestamp;
 	
 	@Column(columnDefinition = "MEDIUMTEXT")
