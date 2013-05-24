@@ -31,9 +31,13 @@ import utils.Misc;
 import utils.RandomData;
 import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
+import database.dao.IDataDao;
+import database.dao.ILogDao;
 import database.dao.IServiceDao;
 import database.dao.ResourceFactory;
 import database.entity.Data;
+import database.entity.Log;
+import database.entity.Log.Type;
 import database.entity.WebService;
 
 /**
@@ -42,6 +46,14 @@ import database.entity.WebService;
 @WebServlet("/MonitorConfig")
 public class MonitorConfig extends HttpServlet {
 	private static final long serialVersionUID = 1L;
+	
+	private IServiceDao serviceDao;
+	
+	private ILogDao logDao;
+	
+	private IDataDao dataDao;
+	
+	private MiniTemplator tpl;
 
 	public enum ValueType {
 		EMPTY, NUMBER, WORD, OTHER
@@ -61,14 +73,22 @@ public class MonitorConfig extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		MiniTemplator.TemplateSpecification tplSpec = new MiniTemplator.TemplateSpecification();
 		tplSpec.templateFileName = Misc.getTemplatePath(this, "config.html");
-
+		tpl = new MiniTemplator(tplSpec);
 		Map<String, ArrayList<String>> methods = null;
 
 		// TODO: When service already exists, show hardware, software, version for editing
+		serviceDao = ResourceFactory.getServiceDao();
+		WebService webService = serviceDao.getByURL(request.getParameter("wsdl"));
+		if (webService != null) {
+			tpl.setVariable("value_version", webService.getVersion() != null ? webService.getVersion() : "");
+			tpl.setVariable("value_hwconfig", webService.getHWinfo() != null ? webService.getHWinfo() : "");
+			tpl.setVariable("value_swconfig", webService.getSWinfo() != null ? webService.getSWinfo() : "");
+		}
+		
 		
 		try {
 			methods = Soap.getMethods(request.getParameter("wsdl"));
-			MiniTemplator tpl = new MiniTemplator(tplSpec);
+			
 			tpl.setVariable("service", request.getParameter("wsdl"));
 
 			for (String method : methods.keySet()) {
@@ -103,22 +123,67 @@ public class MonitorConfig extends HttpServlet {
 	 *      response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		
+		/*
+		 *  TODO: When service already exists update instead of creating a new one,
+		 *  and log a message of type VERSION, HARDWARE and SOFTWARE with the new values as messages.
+		 *  Replace data with newly generated ones.
+		 */		
 		try {
+			boolean serviceExists = false;
+			WebService service = serviceDao.getByURL(request.getParameter("service"));
+
+			logDao = ResourceFactory.getLogDao();
 			
-			WebService service = new WebService();
+			// Create new service if id does not already exist
+			if (service == null) {
+				service = new WebService();
+				service.setUrl(request.getParameter("service"));
+			}
+			else {
+				serviceExists = true;
+				// delete from data if service already exists
+				dataDao = ResourceFactory.getDataDao();
+				dataDao.deleteByWebService(service);				
+			}		
+			
 			/* Web service static fields */
 			service.setTimestamp(new Date());
-			service.setVersion(request.getParameter("version"));
-			service.setHWinfo(request.getParameter("hwconfig"));
+			
+			// Software
+			if (serviceExists && !service.getSWinfo().equals(request.getParameter("swconfig"))) {
+				Log log = new Log();
+				log.setTimestamp(new Date());
+				log.setWebservice(service);
+				log.setType(Type.SOFTWARE);
+				log.setMessage(request.getParameter("swconfig"));
+				logDao.addLog(log);
+			}
 			service.setSWinfo(request.getParameter("swconfig"));
-			service.setUrl(request.getParameter("service"));
+			// Hardware
+			if (serviceExists && !service.getHWinfo().equals(request.getParameter("hwconfig"))) {
+				Log log = new Log();
+				log.setTimestamp(new Date());
+				log.setWebservice(service);
+				log.setType(Type.HARDWARE);
+				log.setMessage(request.getParameter("hwconfig"));
+				logDao.addLog(log);
+			}			
+			service.setHWinfo(request.getParameter("hwconfig"));
+			// Version
+			if (serviceExists && !service.getVersion().equals(request.getParameter("version"))) {
+				Log log = new Log();
+				log.setTimestamp(new Date());
+				log.setWebservice(service);
+				log.setType(Type.VERSION);
+				log.setMessage(request.getParameter("version"));
+				logDao.addLog(log);
+			}				
+			service.setVersion(request.getParameter("version"));
+			
 			service.setWsdl(Soap.downloadWSDL(request.getParameter("service")));
 			
-			/*
-			 *  TODO: When service already exists update instead of creating a new one,
-			 *  and log a message of type VERSION, HARDWARE and SOFTWARE with the new values as messages.
-			 *  Replace data with newly generated ones.
-			 */
+
 			
 			Map<String, ArrayList<String>> methods = Soap.getMethods(request.getParameter("service"));
 			Map<String, String> requestTemplates = Soap.getRequests(request.getParameter("service"));
@@ -129,7 +194,6 @@ public class MonitorConfig extends HttpServlet {
 			Transformer trans = transfac.newTransformer();
 
 			RandomData randomData = new RandomData();
-			
 			for (String method : requestTemplates.keySet()) {
 				if (request.getParameter(method + "_skip") != null) {
 					continue;
@@ -182,8 +246,13 @@ public class MonitorConfig extends HttpServlet {
 				}
 			}
 			
-			IServiceDao dao = ResourceFactory.getServiceDao();
-			dao.addService(service);
+			serviceDao = ResourceFactory.getServiceDao();
+			if (serviceExists) {
+				serviceDao.updateService(service);
+			}
+			else {
+				serviceDao.addService(service);
+			}
 
 			MonitorManager.getInstance().addMonitor(new Monitor(service.getUrl()));
 			
@@ -194,11 +263,12 @@ public class MonitorConfig extends HttpServlet {
 			tpl.setVariable("id", service.getId().toString());
 
 			service.setGeneratedWSDL(Soap.generateResilientWSDL(service.getWsdl(), service.getId()));
-			dao.updateService(service);
+			serviceDao.updateService(service);
 
 			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			MiniTemplator.TemplateSpecification tplSpec = new MiniTemplator.TemplateSpecification();
 			tplSpec.templateFileName = Misc.getTemplatePath(this, "info.html");
 
