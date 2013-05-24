@@ -28,7 +28,7 @@ public class WebService {
 	@Temporal (TemporalType.TIMESTAMP)
 	private Date timestamp;
 	
-	@Column(columnDefinition = "MEDIUMTEXT")
+	@Column(columnDefinition = "MEDIUMTEXT", nullable = false)
 	private String wsdl;
 	
 	private String version;

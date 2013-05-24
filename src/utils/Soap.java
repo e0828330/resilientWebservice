@@ -1,6 +1,7 @@
 package utils;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -196,22 +197,22 @@ public class Soap {
 	
 	/**
 	 * Generates a WSDL document for the given service and appends the
-	 * id to the resilent service for identification
+	 * id to the resilient service for identification
 	 * 
-	 * @param url
+	 * @param wsdl
 	 * @param id
 	 * @return
 	 * @throws Exception
 	 */
-	public static String generateResilientWSDL(String url, Long id) throws Exception {
+	public static String generateResilientWSDL(String wsdl, Long id) throws Exception {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder = factory.newDocumentBuilder();
 		URL baseWSDL = new URL("http://localhost:8080/resilientWebservice/service?wsdl");
 		Document baseDoc = builder.parse(new InputSource(baseWSDL.openStream()));
 
-		URL sourceWSDL = new URL(url);
-		Document targetDoc = builder.parse(new InputSource(sourceWSDL.openStream()));
+		ByteArrayInputStream sourceWSDL = new ByteArrayInputStream(wsdl.getBytes());
+		Document targetDoc = builder.parse(new InputSource(sourceWSDL));
 
 		NamedNodeMap attrs = targetDoc.getDocumentElement().getAttributes();
 

@@ -31,7 +31,7 @@ public class ServiceGenerator extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			WebService service = ResourceFactory.getServiceDao().getService(Long.parseLong(request.getParameter("id")));
-			response.getWriter().print(Soap.generateResilientWSDL(service.getUrl(), service.getId()));
+			response.getWriter().print(Soap.generateResilientWSDL(service.getWsdl(), service.getId()));
 		}
 		catch (Exception e) {
 			e.printStackTrace();
