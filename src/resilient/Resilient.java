@@ -21,10 +21,12 @@ public interface Resilient {
 	@WebMethod
 	public String identifySWEnvironment();
 	@WebMethod
+	public String identifyHWEnvironment();
+	@WebMethod
 	public Changes serviceChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
 	@WebMethod
-	public String swEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
+	public Changes swEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
 	@WebMethod
-	public String hwEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
+	public Changes hwEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date);
 	
 }

@@ -41,10 +41,17 @@ public class ResilientService implements Resilient {
 	@Override
 	@WebMethod
 	public String identifySWEnvironment() {
-		// TODO Auto-generated method stub
-		return null;
+		database.entity.WebService service = ResourceFactory.getServiceDao().getService(getId());
+		return service.getSWinfo();
 	}
 
+	@Override
+	@WebMethod
+	public String identifyHWEnvironment() {
+		database.entity.WebService service = ResourceFactory.getServiceDao().getService(getId());
+		return service.getHWinfo();
+	}
+	
 	@Override
 	@WebMethod
 	public Changes serviceChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
@@ -60,16 +67,32 @@ public class ResilientService implements Resilient {
 
 	@Override
 	@WebMethod
-	public String swEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
-		// TODO Auto-generated method stub
-		return null;
+	public Changes swEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
+		Long id = getId();
+		Changes changes = new Changes();
+		List<Log> logs = ResourceFactory.getLogDao().getSinceDate(id, date);
+		for (Log log : logs) {
+			if (log.getType().equals(Log.Type.SOFTWARE)) {
+				changes.addData(new Change(log.getTimestamp(), log.getName(), log.getType().toString(), log.getMessage()));
+			}
+		}
+
+		return changes;
 	}
 
 	@Override
 	@WebMethod
-	public String hwEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
-		// TODO Auto-generated method stub
-		return null;
+	public Changes hwEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
+		Long id = getId();
+		Changes changes = new Changes();
+		List<Log> logs = ResourceFactory.getLogDao().getSinceDate(id, date);
+		for (Log log : logs) {
+			if (log.getType().equals(Log.Type.HARDWARE)) {
+				changes.addData(new Change(log.getTimestamp(), log.getName(), log.getType().toString(), log.getMessage()));
+			}
+		}
+
+		return changes;
 	}
 
 }
