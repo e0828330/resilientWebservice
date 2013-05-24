@@ -39,10 +39,7 @@ public class Monitor implements Runnable {
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
 		IServiceDao dao = ResourceFactory.getServiceDao(em);
-		EntityTransaction tx = em.getTransaction();
-		tx.begin();
 		this.webService = dao.getByURL(service);
-		tx.commit();
 		em.close();
 
 		XMLUnit.setControlParser("org.apache.xerces.jaxp.DocumentBuilderFactoryImpl");

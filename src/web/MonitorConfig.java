@@ -35,8 +35,6 @@ import utils.RandomData;
 import utils.Soap;
 import biz.source_code.miniTemplator.MiniTemplator;
 import database.DBConnector;
-import database.dao.IDataDao;
-import database.dao.ILogDao;
 import database.dao.IServiceDao;
 import database.dao.ResourceFactory;
 import database.entity.Data;
@@ -84,6 +82,7 @@ public class MonitorConfig extends HttpServlet {
 		tx.commit();
 		em.close();
 		if (webService != null) {
+			tpl.setVariable("subheading", "Your Service is already in our database (<a href='ServiceGenerator?id="+ webService.getId() +"'>Link</a>). You can edit it below.");
 			tpl.setVariable("value_version", webService.getVersion() != null ? webService.getVersion() : "");
 			tpl.setVariable("value_hwconfig", webService.getHWinfo() != null ? webService.getHWinfo() : "");
 			tpl.setVariable("value_swconfig", webService.getSWinfo() != null ? webService.getSWinfo() : "");
@@ -133,15 +132,15 @@ public class MonitorConfig extends HttpServlet {
 		 *  and log a message of type VERSION, HARDWARE and SOFTWARE with the new values as messages.
 		 *  Replace data with newly generated ones.
 		 */		
+		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();	
 		try {
-			EntityManagerFactory emf = DBConnector.getInstance().getEMF();
-			EntityManager em = emf.createEntityManager();
-			EntityTransaction tx = em.getTransaction();
-			tx.begin();						
+					
 			boolean serviceExists = false;
 			WebService service = ResourceFactory.getServiceDao(em).getByURL(request.getParameter("service"));
-			tx.commit();
-			em.close();
+
 			
 
 			
@@ -152,13 +151,8 @@ public class MonitorConfig extends HttpServlet {
 			}
 			else {
 				serviceExists = true;
-				// delete from data if service already exists
-				em = emf.createEntityManager();
-				tx = em.getTransaction();
-				tx.begin();					
-				ResourceFactory.getDataDao(em).deleteByWebService(service);
-				tx.commit();
-				em.close();				
+				// delete from data if service already exists				
+				ResourceFactory.getDataDao(em).deleteByWebService(service);			
 				service.setData(new ArrayList<Data>());
 				
 			}		
@@ -169,9 +163,6 @@ public class MonitorConfig extends HttpServlet {
 			/* Web service static fields */
 			service.setTimestamp(new Date());
 			
-			em = emf.createEntityManager();
-			tx = em.getTransaction();
-			tx.begin();
 			// Software
 			if (serviceExists && !service.getSWinfo().equals(request.getParameter("swconfig"))) {
 				Log log = new Log();
@@ -204,9 +195,6 @@ public class MonitorConfig extends HttpServlet {
 			service.setVersion(request.getParameter("version"));
 			
 			service.setWsdl(Soap.downloadWSDL(request.getParameter("service")));
-			tx.commit();
-			em.close();
-
 			
 			Map<String, ArrayList<String>> methods = Soap.getMethods(request.getParameter("service"));
 			Map<String, String> requestTemplates = Soap.getRequests(request.getParameter("service"));
@@ -268,18 +256,13 @@ public class MonitorConfig extends HttpServlet {
 					
 				}
 			}
-			
-			em = emf.createEntityManager();
-			tx = em.getTransaction();
-			tx.begin();			
+		
 			if (serviceExists) {
 				ResourceFactory.getServiceDao(em).updateService(service);
 			}
 			else {
 				ResourceFactory.getServiceDao(em).addService(service);
 			}
-			tx.commit();
-			em.close();
 
 			MonitorManager.getInstance().addMonitor(new Monitor(service.getUrl()));
 			
@@ -290,17 +273,16 @@ public class MonitorConfig extends HttpServlet {
 			tpl.setVariable("id", service.getId().toString());
 
 			service.setGeneratedWSDL(Soap.generateResilientWSDL(service.getWsdl(), service.getId()));
-			em = emf.createEntityManager();
-			tx = em.getTransaction();
-			tx.begin();		
+	
 			ResourceFactory.getServiceDao(em).updateService(service);
+
 			tx.commit();
-			em.close();
-			
+			em.close();			
 			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {
-			e.printStackTrace();
+			tx.rollback();
+			em.close();
 			MiniTemplator.TemplateSpecification tplSpec = new MiniTemplator.TemplateSpecification();
 			tplSpec.templateFileName = Misc.getTemplatePath(this, "info.html");
 
