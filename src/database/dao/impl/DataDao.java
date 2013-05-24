@@ -6,6 +6,9 @@ import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
 
+import monitor.Monitor;
+import monitor.MonitorManager;
+
 import org.apache.log4j.Logger;
 
 import database.DBConnector;
@@ -48,6 +51,24 @@ public class DataDao implements IDataDao {
 		tx.commit();
 		em.close();
 		return result;
+	}
+
+	@Override
+	public void deleteByWebService(WebService ws) {
+		//this.log.debug("Try to remove all data for service with ID=" + ws.getId() + ".");
+		EntityManager em = emf.createEntityManager();
+		EntityTransaction tx = em.getTransaction();
+		tx.begin();
+		WebService tmp = em.find(WebService.class, ws.getId());
+		 MonitorManager.getInstance().stopMonitor(tmp.getUrl());
+		for (Data d : tmp.getData()) {
+			em.merge(d);
+			em.remove(d);
+		}
+		tx.commit();
+		em.close();
+		MonitorManager.getInstance().addMonitor(new Monitor(tmp.getUrl()));
+		this.log.debug("Removed data.");
 	}
 
 }
