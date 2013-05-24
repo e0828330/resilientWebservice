@@ -31,7 +31,7 @@ public class WebService {
 	@Column(columnDefinition = "MEDIUMTEXT", nullable = false)
 	private String wsdl;
 	
-	@Column(columnDefinition = "MEDIUMTEXT", nullable = false)
+	@Column(columnDefinition = "MEDIUMTEXT")
 	private String generatedWSDL;
 	
 	private String version;

@@ -18,6 +18,11 @@
 		<javac destdir="build/classes" debug="true" srcdir="src" includeantruntime="false">
 			<classpath refid="compile.classpath"/>
 		</javac>
+		<copy file="src/log4j.properties" todir="build/classes" />
+    	<copy todir="build/classes/META-INF" >
+    	    <fileset dir="src/META-INF" />
+    	</copy>
+		
 	</target>
 	
 	<target name="war" depends="compile">
