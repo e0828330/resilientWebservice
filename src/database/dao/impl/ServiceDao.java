@@ -87,4 +87,13 @@ public class ServiceDao implements IServiceDao {
 		return (WebService) result.get(0);
 	}
 
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<WebService> getAll() {
+		EntityManager em = emf.createEntityManager();
+		List<WebService> result = em.createQuery("SELECT ws FROM WebService ws").getResultList();
+		em.close();
+		return result;
+	}
+
 }

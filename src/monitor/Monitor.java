@@ -10,6 +10,7 @@ import org.custommonkey.xmlunit.Diff;
 import org.custommonkey.xmlunit.XMLUnit;
 import org.xml.sax.SAXException;
 
+import database.dao.ILogDao;
 import database.dao.ResourceFactory;
 import database.entity.Data;
 import database.entity.Log;
@@ -70,6 +71,7 @@ public class Monitor implements Runnable {
 
 		WebService webService = ResourceFactory.getServiceDao().getByURL(service);
 		List<Data> dataList = webService.getData();
+		ILogDao logDao = ResourceFactory.getLogDao();
 		
 		boolean reachable = true; // TODO: init from last log state
 		while (true) {
@@ -77,6 +79,7 @@ public class Monitor implements Runnable {
 				Thread.sleep(TIMEOUT);
 				
 				/* Check the WSDL contents */
+				// TODO
 				
 				/* Loop through request / response pairs */
 				for (Data data : dataList) {
@@ -108,10 +111,18 @@ public class Monitor implements Runnable {
 						} catch (SAXException | IOException e) {
 							log.error("Monitor recived an error:" + e.getMessage());
 						}
-						if (xmlDiff != null) {
-							// TODO: avoid logging the same thing in a row
+
+						Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION);
+
+						if (xmlDiff != null && (lastLog == null || !xmlDiff.equals(lastLog.getMessage()))) {
 							log.warn("Message response changed for method " + data.getMethod() + "!");
 							logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
+						}
+						else if (lastLog != null && lastLog.getMessage() != null) {
+							if (!lastLog.getMessage().equals("Method is returning the expected result again.")) {
+								log.info("Message response for method " + data.getMethod() + " is back to expected.");
+								logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.");
+							}
 						}
 					}
 					

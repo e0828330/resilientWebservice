@@ -1,5 +1,7 @@
 package database.dao;
 
+import java.util.List;
+
 import database.entity.WebService;
 
 public interface IServiceDao {
@@ -13,5 +15,7 @@ public interface IServiceDao {
 	public WebService getService(Long id);
 	
 	public WebService getByURL(String url);
+	
+	public List<WebService> getAll();
 	
 }
