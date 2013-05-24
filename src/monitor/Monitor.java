@@ -22,11 +22,11 @@ import utils.Soap;
 public class Monitor implements Runnable {
 
 	final private long TIMEOUT = 15000;
-	
+
 	private String service;
-	
-	private Logger log = Logger.getLogger(Monitor.class); 
-	
+
+	private Logger log = Logger.getLogger(Monitor.class);
+
 	public Monitor(String service) {
 		this.service = service;
 
@@ -36,10 +36,9 @@ public class Monitor implements Runnable {
 		XMLUnit.setTransformerFactory("org.apache.xalan.processor.TransformerFactoryImpl");
 
 	}
-	
+
 	/**
-	 * Returns the difference between two XML documents or NULL
-	 * if they are none
+	 * Returns the difference between two XML documents or NULL if they are none
 	 * 
 	 * @param origXML
 	 * @param newML
@@ -52,7 +51,7 @@ public class Monitor implements Runnable {
 		if (xmlDiff.identical()) {
 			return null;
 		}
-	    return xmlDiff.toString().replaceAll("org.custommonkey.xmlunit.DetailedDiff", "");
+		return xmlDiff.toString().replaceAll("org.custommonkey.xmlunit.DetailedDiff", "");
 	}
 
 	private void logChange(WebService webService, String method, Log.Type type, String message) {
@@ -64,7 +63,7 @@ public class Monitor implements Runnable {
 		entry.setWebservice(webService);
 		ResourceFactory.getLogDao().addLog(entry);
 	}
-	
+
 	@Override
 	public void run() {
 		log.info("Starting monitoring of " + service);
@@ -72,35 +71,36 @@ public class Monitor implements Runnable {
 		WebService webService = ResourceFactory.getServiceDao().getByURL(service);
 		List<Data> dataList = webService.getData();
 		ILogDao logDao = ResourceFactory.getLogDao();
-		
-		boolean reachable = true; // TODO: init from last log state
+
 		while (true) {
 			try {
 				Thread.sleep(TIMEOUT);
-				
+
 				/* Check the WSDL contents */
 				// TODO
-				
+
 				/* Loop through request / response pairs */
 				for (Data data : dataList) {
-					
+
 					/* Check availability */
 					if (!Soap.isAvailable(service)) {
-						logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
-						reachable = false;
+						Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.AVAILABILITY);
+						if (lastLog == null || !lastLog.getMessage().equals("Server not reachable")) {
+							logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
+						}
 						break; // Exit the loop and check again next round
-					} else if (!reachable) {
-						logChange(webService, "", Log.Type.AVAILABILITY, "Server is back online");
-						reachable = true;
+					} else {
+						Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.AVAILABILITY);
+						if (lastLog == null || !lastLog.getMessage().equals("Server is back online")) {
+							logChange(webService, "", Log.Type.AVAILABILITY, "Server is back online");
+						}
 					}
-					
 
 					/* Check response */
 					String response = null;
 					try {
 						response = Soap.sendRequest(service, data.getMethod(), data.getRequest());
-					}
-					catch (ServiceException e) {
+					} catch (ServiceException e) {
 						logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
 					}
 
@@ -114,26 +114,24 @@ public class Monitor implements Runnable {
 
 						Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION);
 
-						if (xmlDiff != null && (lastLog == null || !xmlDiff.equals(lastLog.getMessage()))) {
-							log.warn("Message response changed for method " + data.getMethod() + "!");
-							logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
-						}
-						else if (lastLog != null && lastLog.getMessage() != null) {
-							if (!lastLog.getMessage().equals("Method is returning the expected result again.")) {
-								log.info("Message response for method " + data.getMethod() + " is back to expected.");
-								logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.");
+						if (xmlDiff != null) {
+							if (lastLog == null || !lastLog.getMessage().equals(xmlDiff)) {
+								log.warn("Message response changed for method " + data.getMethod() + "!");
+								logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
 							}
+						} else if (lastLog != null && !lastLog.getMessage().equals("Method is returning the expected result again.")) {
+							log.info("Message response for method " + data.getMethod() + " is back to expected.");
+							logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.");
 						}
 					}
-					
+
 				}
 
 				log.debug("Waiting between checks");
-			}
-			catch (InterruptedException e) {
+			} catch (InterruptedException e) {
 				log.info("Monitor will quit!");
 				return; // Exit
-			} 
+			}
 		}
 	}
 
