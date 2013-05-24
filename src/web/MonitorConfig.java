@@ -147,6 +147,9 @@ public class MonitorConfig extends HttpServlet {
 				dataDao.deleteByWebService(service);				
 			}		
 			
+			// stop monitor
+			MonitorManager.getInstance().stopMonitor(service.getUrl());
+			
 			/* Web service static fields */
 			service.setTimestamp(new Date());
 			

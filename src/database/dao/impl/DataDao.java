@@ -60,14 +60,12 @@ public class DataDao implements IDataDao {
 		EntityTransaction tx = em.getTransaction();
 		tx.begin();
 		WebService tmp = em.find(WebService.class, ws.getId());
-		 MonitorManager.getInstance().stopMonitor(tmp.getUrl());
 		for (Data d : tmp.getData()) {
 			em.merge(d);
 			em.remove(d);
 		}
 		tx.commit();
 		em.close();
-		MonitorManager.getInstance().addMonitor(new Monitor(tmp.getUrl()));
 		this.log.debug("Removed data.");
 	}
 
