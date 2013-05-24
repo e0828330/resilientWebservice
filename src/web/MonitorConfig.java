@@ -193,6 +193,9 @@ public class MonitorConfig extends HttpServlet {
 			MiniTemplator tpl = new MiniTemplator(tplSpec);
 			tpl.setVariable("id", service.getId().toString());
 
+			service.setGeneratedWSDL(Soap.generateResilientWSDL(service.getWsdl(), service.getId()));
+			dao.updateService(service);
+
 			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {

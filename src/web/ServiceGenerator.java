@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import utils.Soap;
 import database.dao.ResourceFactory;
 import database.entity.WebService;
 
@@ -31,7 +30,7 @@ public class ServiceGenerator extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		try {
 			WebService service = ResourceFactory.getServiceDao().getService(Long.parseLong(request.getParameter("id")));
-			response.getWriter().print(Soap.generateResilientWSDL(service.getWsdl(), service.getId()));
+			response.getWriter().print(service.getGeneratedWSDL());
 		}
 		catch (Exception e) {
 			e.printStackTrace();

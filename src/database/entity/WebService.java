@@ -31,6 +31,9 @@ public class WebService {
 	@Column(columnDefinition = "MEDIUMTEXT", nullable = false)
 	private String wsdl;
 	
+	@Column(columnDefinition = "MEDIUMTEXT", nullable = false)
+	private String generatedWSDL;
+	
 	private String version;
 	
 	@Column(columnDefinition = "MEDIUMTEXT")
@@ -130,6 +133,14 @@ public class WebService {
 
 	public void setData(List<Data> data) {
 		this.data = data;
+	}
+
+	public String getGeneratedWSDL() {
+		return generatedWSDL;
+	}
+
+	public void setGeneratedWSDL(String generatedWSDL) {
+		this.generatedWSDL = generatedWSDL;
 	}	
 	
 }
