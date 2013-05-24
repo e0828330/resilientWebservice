@@ -64,6 +64,8 @@ public class MonitorConfig extends HttpServlet {
 
 		Map<String, ArrayList<String>> methods = null;
 
+		// TODO: When service already exists, show hardware, software, version for editing
+		
 		try {
 			methods = Soap.getMethods(request.getParameter("wsdl"));
 			MiniTemplator tpl = new MiniTemplator(tplSpec);
@@ -112,7 +114,11 @@ public class MonitorConfig extends HttpServlet {
 			service.setUrl(request.getParameter("service"));
 			service.setWsdl(Soap.downloadWSDL(request.getParameter("service")));
 			
-			
+			/*
+			 *  TODO: When service already exists update instead of creating a new one,
+			 *  and log a message of type VERSION, HARDWARE and SOFTWARE with the new values as messages.
+			 *  Replace data with newly generated ones.
+			 */
 			
 			Map<String, ArrayList<String>> methods = Soap.getMethods(request.getParameter("service"));
 			Map<String, String> requestTemplates = Soap.getRequests(request.getParameter("service"));
