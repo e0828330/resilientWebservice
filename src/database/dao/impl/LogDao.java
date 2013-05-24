@@ -1,5 +1,6 @@
 package database.dao.impl;
 
+import java.util.Date;
 import java.util.List;
 
 import javax.persistence.EntityManager;
@@ -54,6 +55,21 @@ public class LogDao implements ILogDao {
 		em.close();
 		this.log.debug("Found entry of type=" + type + " name=" + name);
 		return (Log) result.get(0);
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<Log> getSinceDate(Long serviceId, Date since) {
+		this.log.debug("Try to get entries of for " + serviceId + " since " + since);
+		EntityManager em = emf.createEntityManager();
+		Query query = em.createQuery("SELECT l FROM Log l" +
+									" WHERE l.webservice.id = :serviceId AND l.timestamp >= :date" +
+									" ORDER by l.timestamp DESC", Log.class);
+		query.setParameter("date", since);
+		query.setParameter("serviceId", serviceId);
+		List <Log> result = query.getResultList();
+		em.close();
+		return result;
 	}
 
 }

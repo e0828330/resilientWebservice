@@ -1,6 +1,7 @@
 package resilient;
 
 import java.util.Date;
+import java.util.List;
 
 import javax.annotation.Resource;
 import javax.jws.WebMethod;
@@ -9,6 +10,9 @@ import javax.jws.WebService;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
+
+import database.dao.ResourceFactory;
+import database.entity.Log;
 
 import resilient.xml.Change;
 import resilient.xml.Changes;
@@ -36,13 +40,13 @@ public class ResilientService implements Resilient {
 	@Override
 	@WebMethod
 	public Changes serviceChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
-		if (date != null) {
-			System.out.println(date.toString());
-		}
+		Long id = Long.parseLong((String) ctx.getMessageContext().get(MessageContext.QUERY_STRING));
 		Changes changes = new Changes();
-		changes.addData(new Change(new Date(), "Test"));
-		changes.addData(new Change(new Date(), "Test 2"));
-
+		List<Log> logs = ResourceFactory.getLogDao().getSinceDate(id, date);
+		for (Log log : logs) {
+			changes.addData(new Change(log.getTimestamp(), log.getName(), log.getType().toString(), log.getMessage()));
+		}
+		
 		return changes;
 	}
 

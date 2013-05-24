@@ -16,6 +16,12 @@ public class Change {
 	@XmlElement(name="date")
 	private Date date;
 	
+	@XmlElement(name="name")
+	private String name; 
+	
+	@XmlElement(name="type")
+	private String type;
+	
 	@XmlElement(name="message")
 	private String logMessage;
 
@@ -23,9 +29,11 @@ public class Change {
 		
 	}
 	
-	public Change(Date date, String logMessage) {
+	public Change(Date date, String name, String type, String logMessage) {
 		this.date = date;
 		this.logMessage = logMessage;
+		this.name = name;
+		this.type = type;
 	}
 	
 	public Date getDate() {
