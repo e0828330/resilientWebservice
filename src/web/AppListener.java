@@ -4,7 +4,6 @@ import java.util.List;
 
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
-import javax.persistence.EntityTransaction;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 
@@ -20,10 +19,7 @@ public class AppListener implements ServletContextListener {
 	public void contextInitialized(ServletContextEvent arg0) {
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
-		EntityTransaction tx = em.getTransaction();
-		tx.begin();		
 		List<WebService> services = ResourceFactory.getServiceDao(em).getAll();
-		tx.commit();
 		em.close();
 		MonitorManager monitorMg = MonitorManager.getInstance();
 		for (WebService service : services) {
