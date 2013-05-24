@@ -72,22 +72,18 @@ public class MonitorConfig extends HttpServlet {
 		tpl = new MiniTemplator(tplSpec);
 		Map<String, ArrayList<String>> methods = null;
 
-		// TODO: When service already exists, show hardware, software, version for editing
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
-		EntityTransaction tx = em.getTransaction();
-		tx.begin();					
 		IServiceDao serviceDao = ResourceFactory.getServiceDao(em);
 		WebService webService = serviceDao.getByURL(request.getParameter("wsdl"));
-		tx.commit();
 		em.close();
+
 		if (webService != null) {
 			tpl.setVariable("subheading", "Your Service is already in our database (<a href='ServiceGenerator?id="+ webService.getId() +"'>Link</a>). You can edit it below.");
 			tpl.setVariable("value_version", webService.getVersion() != null ? webService.getVersion() : "");
 			tpl.setVariable("value_hwconfig", webService.getHWinfo() != null ? webService.getHWinfo() : "");
 			tpl.setVariable("value_swconfig", webService.getSWinfo() != null ? webService.getSWinfo() : "");
 		}
-		
 		
 		try {
 			methods = Soap.getMethods(request.getParameter("wsdl"));
@@ -125,13 +121,7 @@ public class MonitorConfig extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
 	 *      response)
 	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		
-		/*
-		 *  TODO: When service already exists update instead of creating a new one,
-		 *  and log a message of type VERSION, HARDWARE and SOFTWARE with the new values as messages.
-		 *  Replace data with newly generated ones.
-		 */		
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {	
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
 		EntityTransaction tx = em.getTransaction();
@@ -141,9 +131,6 @@ public class MonitorConfig extends HttpServlet {
 			boolean serviceExists = false;
 			WebService service = ResourceFactory.getServiceDao(em).getByURL(request.getParameter("service"));
 
-			
-
-			
 			// Create new service if id does not already exist
 			if (service == null) {
 				service = new WebService();
