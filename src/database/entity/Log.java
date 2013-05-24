@@ -32,7 +32,7 @@ public class Log {
 	private WebService webservice;
 
 	public enum Type {
-		OPERATION, HARDWARE, SOFTWARE, AVAILABILITY, WSDL
+		OPERATION, HARDWARE, SOFTWARE, AVAILABILITY, WSDL, VERSION
 	}
 	
 	public Log() { }
