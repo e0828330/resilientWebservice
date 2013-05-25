@@ -3,7 +3,6 @@ package database.dao;
 import java.util.Date;
 import java.util.List;
 
-import database.entity.Data;
 import database.entity.Log;
 
 
@@ -18,10 +17,10 @@ public interface ILogDao {
 	 * @param serviceId
 	 * @param name
 	 * @param type
-	 * @param data
+	 * @param dataId
 	 * @return
 	 */
-	public Log getLastEntryOfType(Long serviceId, String name, Log.Type type, Data data);
+	public Log getLastEntryOfType(Long serviceId, String name, Log.Type type, Long dataId);
 	
 	/**
 	 * Returns all message since the given date,

@@ -9,7 +9,6 @@ import javax.persistence.Query;
 import org.apache.log4j.Logger;
 
 import database.dao.ILogDao;
-import database.entity.Data;
 import database.entity.Log;
 import database.entity.Log.Type;
 
@@ -32,27 +31,27 @@ public class LogDao implements ILogDao {
 	}
 
 	@Override
-	public Log getLastEntryOfType(Long serviceId, String name, Type type, Data data) {
+	public Log getLastEntryOfType(Long serviceId, String name, Type type, Long dataId) {
 		this.log.debug("Try to get entry of type=" + type + " name=" + name);
 		Query query = null;
-		if (name == null && data == null) {
+		if (name == null && dataId == null) {
 			query = em.createQuery("SELECT l FROM Log l" +
-					" WHERE l.name IS NULL AND l.type = :type AND l.webservice.id = :serviceId AND data IS NULL" +
+					" WHERE l.name IS NULL AND l.type = :type AND l.webservice.id = :serviceId AND dataId IS NULL" +
 					" ORDER by l.timestamp DESC", Log.class);
 			query.setParameter("type", type);
 			query.setParameter("serviceId", serviceId);
 		} 
-		else if (name == null && data != null) {
+		else if (name == null && dataId != null) {
 			query = em.createQuery("SELECT l FROM Log l" +
-					" WHERE l.name IS NULL AND l.type = :type AND l.webservice.id = :serviceId AND data = :data" +
+					" WHERE l.name IS NULL AND l.type = :type AND l.webservice.id = :serviceId AND dataId = :dataId" +
 					" ORDER by l.timestamp DESC", Log.class);
 			query.setParameter("type", type);
 			query.setParameter("serviceId", serviceId);
-			query.setParameter("data", data);
+			query.setParameter("dataId", dataId);
 		}
-		else if (name != null && data == null) {
+		else if (name != null && dataId == null) {
 			query = em.createQuery("SELECT l FROM Log l" +
-					" WHERE l.name = :name AND l.type = :type AND l.webservice.id = :serviceId AND data IS NULL" +
+					" WHERE l.name = :name AND l.type = :type AND l.webservice.id = :serviceId AND dataId IS NULL" +
 					" ORDER by l.timestamp DESC", Log.class);
 			query.setParameter("type", type);
 			query.setParameter("name", name);
@@ -60,12 +59,12 @@ public class LogDao implements ILogDao {
 		}
 		else {
 			query = em.createQuery("SELECT l FROM Log l" +
-					" WHERE l.name = :name AND l.type = :type AND l.webservice.id = :serviceId AND data = :data" +
+					" WHERE l.name = :name AND l.type = :type AND l.webservice.id = :serviceId AND dataId = :dataId" +
 					" ORDER by l.timestamp DESC", Log.class);
 			query.setParameter("type", type);
 			query.setParameter("name", name);
 			query.setParameter("serviceId", serviceId);
-			query.setParameter("data", data);
+			query.setParameter("dataId", dataId);
 		}
 		
 		List <?> result = query.getResultList();

@@ -73,16 +73,16 @@ public class Monitor implements Runnable {
 	 * @param method
 	 * @param type
 	 * @param message
-	 * @param data
+	 * @param dataId
 	 */
-	private void logChange(WebService webService, String method, Log.Type type, String message, Data data) {
+	private void logChange(WebService webService, String method, Log.Type type, String message, Long dataId) {
 		Log entry = new Log();
 		entry.setMessage(message);
 		entry.setName(method);
 		entry.setType(type);
 		entry.setTimestamp(new Date());
 		entry.setWebservice(webService);
-		entry.setData(data);
+		entry.setDataId(dataId);
 		
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
@@ -118,16 +118,16 @@ public class Monitor implements Runnable {
 				log.error("Monitor recived an error:" + e.getMessage());
 			}
 
-			Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION, data);
+			Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION, data.getId());
 			
 			if (xmlDiff != null) {
 				if (lastLog == null || !lastLog.getMessage().equals(xmlDiff)) {
 					log.warn("Message response changed for method " + data.getMethod() + "!");
-					logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff, data);
+					logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff, data.getId());
 				}
 			} else if (lastLog != null && !lastLog.getMessage().equals("Method is returning the expected result again.")) {
 				log.info("Message response for method " + data.getMethod() + " is back to expected.");
-				logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.", data);
+				logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.", data.getId());
 			}
 		}
 		
