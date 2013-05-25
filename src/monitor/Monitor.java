@@ -73,14 +73,16 @@ public class Monitor implements Runnable {
 	 * @param method
 	 * @param type
 	 * @param message
+	 * @param dataId
 	 */
-	private void logChange(WebService webService, String method, Log.Type type, String message) {
+	private void logChange(WebService webService, String method, Log.Type type, String message, Long dataId) {
 		Log entry = new Log();
 		entry.setMessage(message);
 		entry.setName(method);
 		entry.setType(type);
 		entry.setTimestamp(new Date());
 		entry.setWebservice(webService);
+		entry.setDataId(dataId);
 		
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
@@ -101,8 +103,6 @@ public class Monitor implements Runnable {
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
 		ILogDao logDao = ResourceFactory.getLogDao(em);
-		EntityTransaction tx = em.getTransaction();
-		tx.begin();
 		String response = null;
 		try {
 			response = Soap.sendRequest(service, data.getMethod(), data.getRequest());
@@ -118,20 +118,19 @@ public class Monitor implements Runnable {
 				log.error("Monitor recived an error:" + e.getMessage());
 			}
 
-			Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION);
-
+			Log lastLog = logDao.getLastEntryOfType(webService.getId(), data.getMethod(), Log.Type.OPERATION, data.getId());
+			
 			if (xmlDiff != null) {
 				if (lastLog == null || !lastLog.getMessage().equals(xmlDiff)) {
 					log.warn("Message response changed for method " + data.getMethod() + "!");
-					logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff);
+					logChange(webService, data.getMethod(), Log.Type.OPERATION, xmlDiff, data.getId());
 				}
 			} else if (lastLog != null && !lastLog.getMessage().equals("Method is returning the expected result again.")) {
 				log.info("Message response for method " + data.getMethod() + " is back to expected.");
-				logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.");
+				logChange(webService, data.getMethod(), Log.Type.OPERATION, "Method is returning the expected result again.", data.getId());
 			}
 		}
 		
-		tx.commit();
 		em.close();		
 	}
 	
@@ -145,23 +144,20 @@ public class Monitor implements Runnable {
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
 		EntityManager em = emf.createEntityManager();
 		ILogDao logDao = ResourceFactory.getLogDao(em);
-		EntityTransaction tx = em.getTransaction();
-		tx.begin();
         String response = Soap.downloadWSDL(service);
 
         String xmlDiff = getXMlDiff(webService.getWsdl(), response);
         
-        Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.WSDL);
+        Log lastLog = logDao.getLastEntryOfType(webService.getId(), null, Log.Type.WSDL, null);
         
         if (xmlDiff != null) {
 			if (lastLog == null || !lastLog.getMessage().equals(xmlDiff)) {
 				log.warn("Original WSDL changed!");
-				logChange(webService, "", Log.Type.WSDL, xmlDiff);
+				logChange(webService, null, Log.Type.WSDL, xmlDiff, null);
 			}
 		} else if (lastLog != null && !lastLog.getMessage().equals("WSDL is returning the expected result again.")) {
-			logChange(webService, "", Log.Type.WSDL,  "WSDL is returning the expected result again.");
+			logChange(webService, null, Log.Type.WSDL,  "WSDL is returning the expected result again.", null);
 		}
-		tx.commit();
 		em.close();	        
 	}
 
@@ -190,23 +186,17 @@ public class Monitor implements Runnable {
 				for (Data data : dataList) {
 
 					/* Check availability */
-					if (!Soap.isAvailable(service)) {
-						EntityTransaction tx = em.getTransaction();
-						tx.begin();						
-						Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.AVAILABILITY);
-						tx.commit();
+					if (!Soap.isAvailable(service)) {						
+						Log lastLog = logDao.getLastEntryOfType(webService.getId(), null, Log.Type.AVAILABILITY, null);
 						if (lastLog == null || !lastLog.getMessage().equals("Server not reachable")) {
-							logChange(webService, "", Log.Type.AVAILABILITY, "Server not reachable");
+							logChange(webService, null, Log.Type.AVAILABILITY, "Server not reachable", null);
 						}
 						
 						break; // Exit the loop and check again next round
 					} else {
-						EntityTransaction tx = em.getTransaction();
-						tx.begin();
-						Log lastLog = logDao.getLastEntryOfType(webService.getId(), "", Log.Type.AVAILABILITY);
-						tx.commit();
-						if (lastLog == null || !lastLog.getMessage().equals("Server is back online")) {
-							logChange(webService, "", Log.Type.AVAILABILITY, "Server is back online");
+						Log lastLog = logDao.getLastEntryOfType(webService.getId(), null, Log.Type.AVAILABILITY, null);
+						if (lastLog != null && !lastLog.getMessage().equals("Server is back online")) {
+							logChange(webService, null, Log.Type.AVAILABILITY, "Server is back online", null);
 						}
 					}
 

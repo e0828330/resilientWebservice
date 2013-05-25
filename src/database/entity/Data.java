@@ -58,5 +58,13 @@ public class Data {
 	public void setWebservice(WebService webservice) {
 		this.webservice = webservice;
 	}
+
+	public Long getId() {
+		return id;
+	}
+
+	public void setId(Long id) {
+		this.id = id;
+	}
 	
 }

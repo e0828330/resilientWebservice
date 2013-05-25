@@ -27,6 +27,8 @@ public class Log {
 	private String name;
 
 	private Type type;
+
+	private Long dataId;
 	
 	@ManyToOne
 	private WebService webservice;
@@ -75,6 +77,14 @@ public class Log {
 
 	public void setWebservice(WebService webservice) {
 		this.webservice = webservice;
+	}
+
+	public Long getDataId() {
+		return dataId;
+	}
+
+	public void setDataId(Long dataId) {
+		this.dataId = dataId;
 	}
 
 }

@@ -31,14 +31,42 @@ public class LogDao implements ILogDao {
 	}
 
 	@Override
-	public Log getLastEntryOfType(Long serviceId, String name, Type type) {
+	public Log getLastEntryOfType(Long serviceId, String name, Type type, Long dataId) {
 		this.log.debug("Try to get entry of type=" + type + " name=" + name);
-		Query query = em.createQuery("SELECT l FROM Log l" +
-									" WHERE l.name = :name AND l.type = :type AND l.webservice.id = :serviceId" +
-									" ORDER by l.timestamp DESC", Log.class);
-		query.setParameter("type", type);
-		query.setParameter("name", name);
-		query.setParameter("serviceId", serviceId);
+		Query query = null;
+		if (name == null && dataId == null) {
+			query = em.createQuery("SELECT l FROM Log l" +
+					" WHERE l.name IS NULL AND l.type = :type AND l.webservice.id = :serviceId AND dataId IS NULL" +
+					" ORDER by l.timestamp DESC", Log.class);
+			query.setParameter("type", type);
+			query.setParameter("serviceId", serviceId);
+		} 
+		else if (name == null && dataId != null) {
+			query = em.createQuery("SELECT l FROM Log l" +
+					" WHERE l.name IS NULL AND l.type = :type AND l.webservice.id = :serviceId AND dataId = :dataId" +
+					" ORDER by l.timestamp DESC", Log.class);
+			query.setParameter("type", type);
+			query.setParameter("serviceId", serviceId);
+			query.setParameter("dataId", dataId);
+		}
+		else if (name != null && dataId == null) {
+			query = em.createQuery("SELECT l FROM Log l" +
+					" WHERE l.name = :name AND l.type = :type AND l.webservice.id = :serviceId AND dataId IS NULL" +
+					" ORDER by l.timestamp DESC", Log.class);
+			query.setParameter("type", type);
+			query.setParameter("name", name);
+			query.setParameter("serviceId", serviceId);
+		}
+		else {
+			query = em.createQuery("SELECT l FROM Log l" +
+					" WHERE l.name = :name AND l.type = :type AND l.webservice.id = :serviceId AND dataId = :dataId" +
+					" ORDER by l.timestamp DESC", Log.class);
+			query.setParameter("type", type);
+			query.setParameter("name", name);
+			query.setParameter("serviceId", serviceId);
+			query.setParameter("dataId", dataId);
+		}
+		
 		List <?> result = query.getResultList();
 		if (result == null || result.isEmpty()) {
 			return null;

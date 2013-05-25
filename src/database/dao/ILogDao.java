@@ -12,14 +12,15 @@ public interface ILogDao {
 	
 	/**
 	 * Returns the most recent entry that
-	 * has the given type and name
+	 * has the given type and name and dataId
 	 * 
 	 * @param serviceId
 	 * @param name
 	 * @param type
+	 * @param dataId
 	 * @return
 	 */
-	public Log getLastEntryOfType(Long serviceId, String name, Log.Type type);
+	public Log getLastEntryOfType(Long serviceId, String name, Log.Type type, Long dataId);
 	
 	/**
 	 * Returns all message since the given date,
