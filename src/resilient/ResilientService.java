@@ -10,6 +10,7 @@ import javax.jws.WebService;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.EntityTransaction;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
@@ -76,7 +77,7 @@ public class ResilientService implements Resilient {
 	
 	@Override
 	@WebMethod
-	public Changes serviceChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
+	public Changes serviceChangesSince(@XmlElement(required=true) @WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
 		Long id = getId();
 		Changes changes = new Changes();
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
@@ -95,7 +96,7 @@ public class ResilientService implements Resilient {
 
 	@Override
 	@WebMethod
-	public Changes swEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
+	public Changes swEnvironmentChangesSince(@XmlElement(required=true) @WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
 		Long id = getId();
 		Changes changes = new Changes();
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
@@ -116,7 +117,7 @@ public class ResilientService implements Resilient {
 
 	@Override
 	@WebMethod
-	public Changes hwEnvironmentChangesSince(@WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
+	public Changes hwEnvironmentChangesSince(@XmlElement(required=true) @WebParam(name="date") @XmlJavaTypeAdapter(DateAdapter.class) Date date) {
 		Long id = getId();
 		Changes changes = new Changes();
 		EntityManagerFactory emf = DBConnector.getInstance().getEMF();
