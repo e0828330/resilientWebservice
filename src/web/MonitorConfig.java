@@ -250,8 +250,6 @@ public class MonitorConfig extends HttpServlet {
 			else {
 				ResourceFactory.getServiceDao(em).addService(service);
 			}
-
-			MonitorManager.getInstance().addMonitor(new Monitor(service.getUrl()));
 			
 			MiniTemplator.TemplateSpecification tplSpec = new MiniTemplator.TemplateSpecification();
 			tplSpec.templateFileName = Misc.getTemplatePath(this, "ready.html");
@@ -265,6 +263,9 @@ public class MonitorConfig extends HttpServlet {
 
 			tx.commit();
 			em.close();			
+			
+			MonitorManager.getInstance().addMonitor(new Monitor(service.getUrl()));
+			
 			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {
