@@ -66,6 +66,7 @@ public class Soap {
 			SoapUI.setStandalone(true);
 			WsdlProject project = new WsdlProject();
 			project.setTimeout(1500);
+			project.setCacheDefinitions(false);
 			
 			if (!Soap.isAvailable(serviceUrl)) {
 				throw new ServiceException("Server not reachable"); 

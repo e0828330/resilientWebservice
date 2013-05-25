@@ -269,7 +269,12 @@ public class MonitorConfig extends HttpServlet {
 			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {
-			tx.rollback();
+			try {
+				tx.rollback();
+			}
+			catch (Exception e1) {
+				
+			}
 			em.close();
 			MiniTemplator.TemplateSpecification tplSpec = new MiniTemplator.TemplateSpecification();
 			tplSpec.templateFileName = Misc.getTemplatePath(this, "info.html");
