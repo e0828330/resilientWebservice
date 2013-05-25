@@ -8,6 +8,7 @@ import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+import javax.persistence.OneToOne;
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
 
@@ -28,7 +29,8 @@ public class Log {
 
 	private Type type;
 
-	private Long dataId;
+	@OneToOne
+	private Data data;
 	
 	@ManyToOne
 	private WebService webservice;
@@ -79,12 +81,12 @@ public class Log {
 		this.webservice = webservice;
 	}
 
-	public Long getDataId() {
-		return dataId;
+	public Data getData() {
+		return data;
 	}
 
-	public void setDataId(Long dataId) {
-		this.dataId = dataId;
+	public void setData(Data data) {
+		this.data = data;
 	}
 
 }
