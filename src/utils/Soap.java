@@ -111,6 +111,7 @@ public class Soap {
 
 		HashMap<String, String> result = new HashMap<>();
 		WsdlProject project = new WsdlProject();
+		project.setCacheDefinitions(false);
 		project.setTimeout(15);
 		WsdlInterface[] wsdls = WsdlImporter.importWsdl(project, serviceUrl);
 		WsdlInterface wsdl = wsdls[0];

@@ -269,6 +269,7 @@ public class MonitorConfig extends HttpServlet {
 			response.getWriter().print(tpl.generateOutput());
 
 		} catch (Exception e) {
+			e.printStackTrace();
 			try {
 				tx.rollback();
 			}
