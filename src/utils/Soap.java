@@ -48,6 +48,10 @@ import com.eviware.soapui.model.iface.Response;
 
 public class Soap {
 
+	/**
+	 * Change if it does not match
+	 */
+	private static final String basePath = "http://localhost:8080";
 
 	/**
 	 * Sends a request to the webservice specified and returns the response as
@@ -210,7 +214,7 @@ public class Soap {
 		DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
 		factory.setNamespaceAware(true);
 		DocumentBuilder builder = factory.newDocumentBuilder();
-		URL baseWSDL = new URL("http://localhost:8080/resilientWebservice/service?wsdl");
+		URL baseWSDL = new URL(basePath + "/resilientWebservice/service?wsdl");
 		Document baseDoc = builder.parse(new InputSource(baseWSDL.openStream()));
 
 		ByteArrayInputStream sourceWSDL = new ByteArrayInputStream(wsdl.getBytes());
